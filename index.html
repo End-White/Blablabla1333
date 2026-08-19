@@ -290,17 +290,17 @@
     align-items:center;
     padding: 10px 0 4px;
   }
-  .lamp-timer{ position:relative; width:230px; height:230px; }
-  .lamp-timer svg{ width:100%; height:100%; transform: rotate(-90deg); }
+  .lamp-timer{ position:relative; width:230px; height:230px; margin: 0 auto; }
+  .lamp-timer svg{ width:100%; height:100%; transform: rotate(-90deg); overflow: visible; }
   .lamp-timer .ring-bg{ fill:none; stroke: var(--border); stroke-width:10; }
   .lamp-timer .ring-fg{
     fill:none; stroke: var(--accent); stroke-width:10; stroke-linecap:round;
     transition: stroke-dashoffset .35s ease, stroke .3s ease;
-    filter: drop-shadow(0 0 10px rgba(var(--accent-rgb),0.7));
+    filter: drop-shadow(0 0 8px rgba(var(--accent-rgb),0.6));
   }
   .lamp-timer .ring-fg.live{ transition: stroke .3s ease; }
   .lamp-timer.is-break .ring-fg{ stroke: var(--text-muted); filter:none; }
-  .lamp-timer.is-longbreak .ring-fg{ stroke: var(--success); filter: drop-shadow(0 0 10px rgba(var(--success-rgb),0.55)); }
+  .lamp-timer.is-longbreak .ring-fg{ stroke: var(--success); filter: drop-shadow(0 0 8px rgba(var(--success-rgb),0.45)); }
   .lamp-center{
     position:absolute; inset:0;
     display:flex; flex-direction:column; align-items:center; justify-content:center;
@@ -353,10 +353,36 @@
 
   .timer-controls{
     display:flex;
-    gap:10px;
+    align-items:center;
+    justify-content:center;
+    gap:0;
     margin-top:18px;
+    width:100%;
   }
   .timer-controls .btn{ min-width:96px; }
+  .timer-controls .side-btn{
+    max-width:0;
+    opacity:0;
+    transform: scale(0.4);
+    overflow:hidden;
+    padding-left:0; padding-right:0;
+    border-width:0;
+    margin:0;
+    white-space:nowrap;
+    pointer-events:none;
+    min-width:0;
+    transition: max-width .45s cubic-bezier(0.34,1.56,0.64,1), opacity .3s ease,
+                transform .45s cubic-bezier(0.34,1.56,0.64,1), margin .45s ease, padding .35s ease;
+  }
+  .timer-controls.active .side-btn{
+    max-width:140px;
+    opacity:1;
+    transform: scale(1);
+    margin: 0 7px;
+    padding: 13px 16px;
+    border-width:1px;
+    pointer-events:auto;
+  }
   .btn-secondary{
     background: var(--surface-2);
     color: var(--text);
@@ -421,12 +447,12 @@
 
   .fab-wrap{ position:relative; flex:none; }
   .fab{
-    width:60px; height:60px;
+    width:68px; height:68px;
     border-radius:50%;
     border:none;
     background: var(--accent);
     color:#14151A;
-    font-size:26px;
+    font-size:29px;
     font-weight:600;
     box-shadow: 0 10px 26px rgba(var(--accent-rgb),0.45);
     display:flex; align-items:center; justify-content:center;
@@ -452,7 +478,7 @@
   /* Materia picker popover (above + button) */
   .materia-picker{
     position:absolute;
-    bottom: 74px;
+    bottom: 82px;
     left:50%;
     width: 250px;
     max-height: 260px;
@@ -668,15 +694,21 @@
   }
   .color-swatch-btn:hover{ transform: scale(1.08); }
 
-  .custom-color-trigger{
-    display:flex; align-items:center; gap:10px;
-    width:100%; padding:12px 14px; border-radius:9px;
-    border:1px solid var(--border); background: var(--bg); color: var(--text);
-    font-size:13.5px; font-weight:600;
+  .custom-color-pill{
+    display:inline-flex; align-items:center; gap:7px;
+    padding: 5px 14px 5px 5px; border-radius:999px;
+    border:1.5px dashed var(--border); background: var(--surface-2); color: var(--text-muted);
+    font-size:12px; font-weight:600;
+    transition: border-color .2s ease, background .2s ease, color .2s ease;
   }
-  html[data-theme="light"] .custom-color-trigger{ background: var(--surface); }
-  .custom-color-trigger:hover{ background: var(--surface-hover); }
-  .custom-color-dot{ width:20px; height:20px; border-radius:50%; flex:none; border:2px solid var(--border); }
+  .custom-color-pill:hover{ border-color: var(--accent); color: var(--text); }
+  .custom-color-pill.selected{ border-style:solid; border-color: var(--accent); background: rgba(var(--accent-rgb),0.1); color: var(--text); }
+  .custom-color-pill .custom-color-dot{
+    width:26px; height:26px; border-radius:50%; flex:none;
+    background: conic-gradient(from 0deg, red, yellow, lime, cyan, blue, magenta, red);
+    border:2px solid var(--surface);
+    box-shadow: 0 0 0 1px var(--border);
+  }
 
   .color-popover-modal{ max-width: 320px; }
   .color-popover-head{ display:flex; align-items:center; justify-content:space-between; margin-bottom:16px; }
@@ -722,6 +754,13 @@
   .history-item .h-left .h-materia{ font-weight:600; font-size:14px; }
   .history-item .h-left .h-date{ font-size:11px; color: var(--text-muted); margin-top:2px; }
   .history-item .h-min{ font-family: var(--font-mono); font-weight:600; color: var(--accent); }
+  .history-item .h-right{ display:flex; align-items:center; gap:10px; }
+  .history-item .h-del{
+    width:26px; height:26px; border-radius:50%; flex:none;
+    border:1px solid var(--border); background: var(--surface-2);
+    color: var(--text-muted); font-size:12px;
+  }
+  .history-item .h-del:hover{ background: rgba(var(--danger-rgb,229,72,77),0.12); color: var(--danger); border-color: var(--danger); }
   .empty-state{
     text-align:center;
     padding: 30px 10px;
@@ -916,9 +955,10 @@
         <span class="placeholder">Elige una materia con el botón +</span>
       </div>
 
-      <div class="timer-controls">
-        <button class="btn btn-secondary" id="btnResetTimer" onclick="resetTimer()">Reiniciar</button>
+      <div class="timer-controls" id="timerControls">
+        <button class="btn btn-secondary side-btn" id="btnResetTimer" onclick="resetTimer()">Reiniciar</button>
         <button class="btn btn-primary" id="btnStartPause" onclick="toggleTimer()" style="width:auto;">Iniciar</button>
+        <button class="btn btn-secondary side-btn" id="btnStopSession" onclick="openStopModal()">Detener</button>
       </div>
     </section>
 
@@ -933,8 +973,8 @@
 
   <nav class="bottom-nav">
     <div class="nav-row">
-      <button class="nav-square" onclick="openModal('modalMaterias')">
-        <span class="ico">📚</span>Materias
+      <button class="nav-square" onclick="openModal('modalInfo')">
+        <span class="ico">ℹ️</span>Más información
       </button>
 
       <div class="fab-wrap">
@@ -943,16 +983,16 @@
         <div class="materia-picker" id="materiaPicker"></div>
       </div>
 
-      <button class="nav-square" onclick="openModal('modalRegistro')">
-        <span class="ico">🗂️</span>Registro
+      <button class="nav-square" onclick="openModal('modalLogros')">
+        <span class="ico">🏆</span>Logros
       </button>
     </div>
     <div class="nav-row">
-      <button class="nav-square" onclick="openModal('modalInfo')">
-        <span class="ico">ℹ️</span>Más información
+      <button class="nav-square" onclick="openModal('modalMaterias')">
+        <span class="ico">📚</span>Materias
       </button>
-      <button class="nav-square" onclick="openModal('modalLogros')">
-        <span class="ico">🏆</span>Logros
+      <button class="nav-square" onclick="openModal('modalRegistro')">
+        <span class="ico">🗂️</span>Registro
       </button>
     </div>
   </nav>
@@ -1040,13 +1080,6 @@
     <div class="field">
       <label>Color de acento</label>
       <div class="swatch-row" id="accentSwatches"></div>
-      <div class="field" style="margin-top:10px;">
-        <label>O personaliza el tuyo</label>
-        <button type="button" class="custom-color-trigger" id="customColorBtn" onclick="openColorPopover('accent')">
-          <span class="custom-color-dot" id="customColorDot" style="background:#F2A65A;"></span>
-          <span>Elegir con rueda de colores</span>
-        </button>
-      </div>
     </div>
 
     <div class="field">
@@ -1128,6 +1161,18 @@
       <button class="btn btn-secondary" style="flex:1;" onclick="resolveResume('restart')">Reiniciar</button>
       <button class="btn btn-primary" style="flex:1; margin-top:0;" onclick="resolveResume('continue')">Continuar donde quedé</button>
     </div>
+  </div>
+</div>
+
+<!-- ============ MODAL: DETENER SESIÓN ============ -->
+<div class="modal-overlay hidden" id="modalStopOverlay" onclick="closeOnOverlay(event,'modalStop')">
+  <div class="modal">
+    <div class="modal-head">
+      <h2>Detener sesión</h2>
+      <button class="modal-close" onclick="closeModal('modalStop')">✕</button>
+    </div>
+    <div class="info-block" id="stopInfoText"></div>
+    <div id="stopActions" style="display:flex; flex-direction:column; gap:10px;"></div>
   </div>
 </div>
 
@@ -1362,6 +1407,7 @@ function resolveResume(choice){
     lamp.classList.toggle('is-break', mode === 'break');
     lamp.classList.toggle('is-longbreak', mode === 'longbreak');
     updateTimerDisplay();
+    updateTimerControlsVisibility();
     saveTimerState();
     toast('Retomando justo donde lo dejaste.');
   } else {
@@ -1552,6 +1598,7 @@ function setMode(newMode, silent){
   document.getElementById('ringFg').classList.remove('live');
   updateTimerDisplay();
   renderCycleDots();
+  updateTimerControlsVisibility();
   if(!silent){
     // nada extra por ahora
   }
@@ -1593,6 +1640,13 @@ function updateDigitsOnly(){
   document.getElementById('digits').textContent = `${m}:${s}`;
 }
 
+/* Muestra "Reiniciar" y "Detener" solo cuando hay una sesión activa o a medias;
+   si está intacta (recién empezada, sin correr) solo se ve el botón "Iniciar". */
+function updateTimerControlsVisibility(){
+  const active = running || remaining < totalForMode;
+  document.getElementById('timerControls').classList.toggle('active', active);
+}
+
 function startTimer(){
   if(mode === 'focus' && !selectedMateriaId){
     toast('Elige una materia con el botón + antes de iniciar.');
@@ -1602,6 +1656,7 @@ function startTimer(){
   timerEndAt = Date.now() + remaining * 1000;
   document.getElementById('btnStartPause').textContent = 'Pausar';
   document.getElementById('ringFg').classList.add('live');
+  updateTimerControlsVisibility();
   saveTimerState();
   rafId = requestAnimationFrame(animateRing);
   timerInterval = setInterval(()=>{
@@ -1627,6 +1682,7 @@ function pauseTimer(){
   document.getElementById('ringFg').classList.remove('live');
   document.getElementById('btnStartPause').textContent = 'Iniciar';
   updateTimerDisplay();
+  updateTimerControlsVisibility();
   saveTimerState();
 }
 
@@ -1692,6 +1748,100 @@ function onTimerComplete(){
   }
 }
 
+/* Registra una sesión (completa o parcial) sin pasar por onTimerComplete,
+   usado cuando el usuario detiene el bloque antes de tiempo. */
+function logPartialSession(minutos){
+  const materia = currentUserData.materias.find(m => m.id === selectedMateriaId);
+  const registro = {
+    id: 'h_' + Date.now(),
+    materiaId: selectedMateriaId,
+    materiaNombre: materia ? materia.nombre : 'Materia eliminada',
+    minutos,
+    fecha: new Date().toISOString()
+  };
+  currentUserData.historial.unshift(registro);
+  currentUserData.cycleProgress = (currentUserData.cycleProgress || 0) + 1;
+  const s = currentUserData.settings;
+  const earnedLongBreak = s.cyclesEnabled && currentUserData.cycleProgress >= s.cyclesCount;
+  if(earnedLongBreak){
+    currentUserData.cycleProgress = 0;
+    currentUserData.longBreaksEarned = (currentUserData.longBreaksEarned || 0) + 1;
+  }
+  persistUser();
+  renderLastSession();
+  renderPendingDot();
+  renderHistoryList();
+  renderMateriasList();
+  renderAchievements();
+  renderCycleDots();
+  return { registro, earnedLongBreak };
+}
+
+/* ---------------- Detener sesión / cambiar de materia a mitad de camino ---------------- */
+function openStopModal(){
+  if(running) pauseTimer();
+  const elapsedSec = Math.max(0, totalForMode - remaining);
+  const elapsedMin = Math.floor(elapsedSec / 60);
+  const m = Math.floor(remaining / 60).toString().padStart(2,'0');
+  const sec = Math.floor(remaining % 60).toString().padStart(2,'0');
+  let actionsHtml = '';
+
+  if(mode === 'focus'){
+    const materia = currentUserData.materias.find(x => x.id === selectedMateriaId);
+    const materiaTxt = materia ? ` de <strong>${escapeHtml(materia.nombre)}</strong>` : '';
+    document.getElementById('stopInfoText').innerHTML =
+      `Llevas <strong>${elapsedMin} min</strong>${materiaTxt} y te quedan <strong>${m}:${sec}</strong>. ¿Qué quieres hacer?`;
+    actionsHtml = `
+      <button class="btn btn-secondary" onclick="stopSessionAction('advance')">Terminar y pasar a descanso</button>
+      <button class="btn btn-secondary" onclick="stopSessionAction('switch')">Cambiar de materia (conservo el tiempo)</button>
+      <button class="btn btn-secondary" onclick="stopSessionAction('restart')">Empezar de cero</button>
+    `;
+  } else {
+    const modeLabel = mode === 'longbreak' ? 'descanso largo' : 'descanso';
+    document.getElementById('stopInfoText').innerHTML =
+      `Te quedan <strong>${m}:${sec}</strong> de tu ${modeLabel}. ¿Qué quieres hacer?`;
+    actionsHtml = `
+      <button class="btn btn-secondary" onclick="stopSessionAction('advance')">Terminar y volver a enfoque</button>
+      <button class="btn btn-secondary" onclick="stopSessionAction('restart')">Empezar de cero</button>
+    `;
+  }
+  document.getElementById('stopActions').innerHTML = actionsHtml;
+  document.getElementById('modalStopOverlay').classList.remove('hidden');
+}
+
+function stopSessionAction(choice){
+  document.getElementById('modalStopOverlay').classList.add('hidden');
+  const elapsedSec = Math.max(0, totalForMode - remaining);
+  const elapsedMin = Math.floor(elapsedSec / 60);
+
+  if(choice === 'advance'){
+    if(mode === 'focus'){
+      if(elapsedMin >= 1 && selectedMateriaId){
+        const { earnedLongBreak } = logPartialSession(elapsedMin);
+        if(earnedLongBreak){
+          toast(`¡Sesiones completas! Toca un descanso largo de ${currentUserData.settings.longBreakMin} min.`);
+          setMode('longbreak');
+        } else {
+          toast(`Guardamos ${elapsedMin} min. A descansar.`);
+          setMode('break');
+        }
+      } else {
+        toast('Pasamos a descanso.');
+        setMode('break');
+      }
+    } else {
+      toast('De vuelta al enfoque.');
+      setMode('focus');
+    }
+  } else if(choice === 'switch'){
+    toast('Elige la nueva materia con el botón +.');
+    toggleMateriaPicker();
+  } else if(choice === 'restart'){
+    setMode(mode);
+    toast('Empezamos de cero.');
+  }
+}
+
 function renderCycleDots(){
   const wrap = document.getElementById('cycleDots');
   const s = currentUserData.settings;
@@ -1734,9 +1884,22 @@ function renderHistoryList(){
         <div class="h-materia">${escapeHtml(h.materiaNombre)}</div>
         <div class="h-date">${fmtDate(h.fecha)}</div>
       </div>
-      <div class="h-min">${h.minutos} min</div>
+      <div class="h-right">
+        <div class="h-min">${h.minutos} min</div>
+        <button class="h-del" title="Eliminar sesión" onclick="deleteHistoryEntry('${h.id}')">✕</button>
+      </div>
     </div>
   `).join('');
+}
+
+function deleteHistoryEntry(id){
+  currentUserData.historial = currentUserData.historial.filter(h => h.id !== id);
+  persistUser();
+  renderHistoryList();
+  renderLastSession();
+  renderPendingDot();
+  renderMateriasList();
+  toast('Sesión eliminada del registro.');
 }
 
 /* ---------------- Logros ---------------- */
@@ -1830,11 +1993,17 @@ function renderAchievements(){
 /* ---------------- Personalización ---------------- */
 function renderAccentSwatches(){
   const wrap = document.getElementById('accentSwatches');
-  wrap.innerHTML = ACCENTS.map(a => `
+  const presets = ACCENTS.map(a => `
     <button type="button" class="swatch-pick" data-hex="${a.hex}"
       style="background:${a.hex}" title="${a.name}" onclick="pickAccentPreview('${a.hex}')">
     </button>
   `).join('');
+  wrap.innerHTML = presets + `
+    <button type="button" class="custom-color-pill" id="customColorBtn" onclick="openColorPopover('accent')">
+      <span class="custom-color-dot" id="customColorDot"></span>
+      <span>Personalizar</span>
+    </button>
+  `;
 }
 
 let previewAccent = null;
@@ -1842,7 +2011,16 @@ let previewTheme = null;
 
 function pickAccentPreview(hex){
   previewAccent = hex;
-  document.getElementById('customColorDot').style.background = hex;
+  const isPreset = ACCENTS.some(a => a.hex.toLowerCase() === hex.toLowerCase());
+  const dot = document.getElementById('customColorDot');
+  const pill = document.getElementById('customColorBtn');
+  if(isPreset){
+    dot.style.background = 'conic-gradient(from 0deg, red, yellow, lime, cyan, blue, magenta, red)';
+    pill.classList.remove('selected');
+  } else {
+    dot.style.background = hex;
+    pill.classList.add('selected');
+  }
   document.querySelectorAll('.swatch-pick').forEach(el=>{
     el.classList.toggle('selected', el.dataset.hex.toLowerCase() === hex.toLowerCase());
   });
