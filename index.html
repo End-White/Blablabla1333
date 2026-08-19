@@ -1,1 +1,2150 @@
-<h1>Hel</h1>
+<!DOCTYPE html>
+<html lang="es">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0, viewport-fit=cover">
+<title>Enfoque — tu Pomodoro de estudio</title>
+<link rel="preconnect" href="https://fonts.googleapis.com">
+<link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+<link href="https://fonts.googleapis.com/css2?family=Fraunces:opsz,wght@9..144,500;9..144,600;9..144,700&family=Sora:wght@400;500;600;700&family=JetBrains+Mono:wght@500;600;700&display=swap" rel="stylesheet">
+<style>
+  :root{
+    --bg: #12141C;
+    --bg-vignette: #0A0B10;
+    --surface: #1B1E29;
+    --surface-2: #232735;
+    --surface-hover: #2A2E3D;
+    --border: #2B2F3D;
+    --text: #ECEDF3;
+    --text-muted: #8D91A6;
+    --success: #4ADE80;
+    --success-rgb: 74,222,128;
+    --danger: #E5484D;
+    --accent: #F2A65A;
+    --accent-rgb: 242,166,90;
+    --radius-lg: 22px;
+    --radius-md: 14px;
+    --radius-sm: 9px;
+    --shadow-soft: 0 20px 60px rgba(0,0,0,0.45);
+    --font-display: 'Fraunces', serif;
+    --font-body: 'Sora', sans-serif;
+    --font-mono: 'JetBrains Mono', monospace;
+  }
+
+  html[data-theme="light"]{
+    --bg: #E9EAEF;
+    --bg-vignette: #DADCE4;
+    --surface: #FFFFFF;
+    --surface-2: #F4F5F9;
+    --surface-hover: #EAECF2;
+    --border: #DCDFE7;
+    --text: #1B1E29;
+    --text-muted: #5B5F73;
+    --shadow-soft: 0 20px 50px rgba(30,32,45,0.14);
+  }
+
+  *{ box-sizing: border-box; }
+  html,body{ height:100%; }
+  body{
+    margin:0;
+    font-family: var(--font-body);
+    background:
+      radial-gradient(ellipse 900px 600px at 50% -10%, rgba(var(--accent-rgb),0.16), transparent 60%),
+      radial-gradient(ellipse 1200px 800px at 50% 110%, var(--bg-vignette), var(--bg) 60%);
+    color: var(--text);
+    min-height:100%;
+    -webkit-font-smoothing: antialiased;
+  }
+  button{ font-family: inherit; }
+  input, select{ font-family: inherit; }
+  .hidden{ display:none !important; }
+
+  a, button{ cursor:pointer; }
+  :focus-visible{ outline: 2px solid var(--accent); outline-offset: 2px; }
+
+  /* ---------- Shell layout ---------- */
+  .app-frame{
+    max-width: 460px;
+    margin: 0 auto;
+    min-height: 100vh;
+    background: var(--surface);
+    box-shadow: var(--shadow-soft);
+    display:flex;
+    flex-direction:column;
+    position:relative;
+    overflow:hidden;
+  }
+  @media (min-width: 560px){
+    body{ padding: 32px 16px; }
+    .app-frame{ min-height: calc(100vh - 64px); border-radius: var(--radius-lg); }
+  }
+
+  /* ---------- Auth screen ---------- */
+  #authScreen{
+    max-width: 460px;
+    margin: 0 auto;
+    min-height: 100vh;
+    display:flex;
+    flex-direction:column;
+    justify-content:center;
+    padding: 40px 28px;
+  }
+  @media (min-width: 560px){
+    #authScreen{ min-height: calc(100vh - 64px); }
+  }
+  .auth-brand{
+    text-align:center;
+    margin-bottom: 34px;
+  }
+  .auth-brand .lamp-mark{
+    width:54px; height:54px; margin: 0 auto 14px;
+    border-radius:50%;
+    background: radial-gradient(circle at 50% 40%, var(--accent), rgba(var(--accent-rgb),0.15) 70%);
+    box-shadow: 0 0 32px rgba(var(--accent-rgb),0.55);
+  }
+  .auth-brand h1{
+    font-family: var(--font-display);
+    font-weight:600;
+    font-size: 30px;
+    margin: 0 0 4px;
+    letter-spacing: -0.01em;
+  }
+  .auth-brand p{
+    color: var(--text-muted);
+    margin:0;
+    font-size: 14px;
+  }
+  .auth-card{
+    background: var(--surface-2);
+    border: 1px solid var(--border);
+    border-radius: var(--radius-lg);
+    padding: 26px;
+  }
+  .auth-tabs{
+    display:flex;
+    gap:6px;
+    background: var(--bg);
+    border-radius: var(--radius-md);
+    padding:4px;
+    margin-bottom:20px;
+  }
+  html[data-theme="light"] .auth-tabs{ background: var(--surface); }
+  .auth-tab{
+    flex:1;
+    border:none;
+    background:transparent;
+    padding:10px 0;
+    border-radius: 10px;
+    color: var(--text-muted);
+    font-weight:600;
+    font-size: 13px;
+    letter-spacing:0.02em;
+    transition: background .2s, color .2s;
+  }
+  .auth-tab.active{ background: var(--surface-2); color: var(--text); }
+  html[data-theme="light"] .auth-tab.active{ background: var(--surface-hover); }
+
+  .field{ margin-bottom:14px; }
+  .field label{
+    display:block;
+    font-size:12px;
+    color: var(--text-muted);
+    margin-bottom:6px;
+    letter-spacing:0.02em;
+  }
+  .field input{
+    width:100%;
+    padding: 12px 14px;
+    border-radius: var(--radius-sm);
+    border:1px solid var(--border);
+    background: var(--bg);
+    color: var(--text);
+    font-size:14px;
+  }
+  html[data-theme="light"] .field input{ background: var(--surface); }
+  .field input:focus{ border-color: var(--accent); }
+
+  .btn{
+    border:none;
+    border-radius: var(--radius-sm);
+    padding: 13px 18px;
+    font-weight:600;
+    font-size:14px;
+    transition: transform .12s ease, background .2s, box-shadow .2s;
+  }
+  .btn:active{ transform: scale(0.97); }
+  .btn-primary{
+    width:100%;
+    background: var(--accent);
+    color: #14151A;
+    box-shadow: 0 8px 24px rgba(var(--accent-rgb),0.35);
+    margin-top: 6px;
+  }
+  .btn-ghost{
+    background: transparent;
+    color: var(--text-muted);
+    border:1px solid var(--border);
+  }
+  .auth-error{
+    color: var(--danger);
+    font-size: 13px;
+    margin: -4px 0 12px;
+    min-height: 16px;
+  }
+  .auth-hint{
+    text-align:center;
+    font-size:12px;
+    color: var(--text-muted);
+    margin-top:18px;
+    line-height:1.5;
+  }
+
+  /* ---------- Header ---------- */
+  .app-header{
+    display:flex;
+    align-items:center;
+    justify-content:space-between;
+    padding: 18px 20px 8px;
+  }
+  .app-header .brand{
+    display:flex; align-items:center; gap:10px;
+  }
+  .app-header .lamp-dot{
+    width:11px; height:11px; border-radius:50%;
+    background: radial-gradient(circle at 40% 35%, #fff, var(--accent) 60%);
+    box-shadow: 0 0 10px rgba(var(--accent-rgb),0.8);
+  }
+  .app-header h1{
+    font-family: var(--font-display);
+    font-size:19px;
+    font-weight:600;
+    margin:0;
+  }
+  .app-header .greet{
+    font-size:12px;
+    color: var(--text-muted);
+    margin:0;
+  }
+  .header-actions{ display:flex; gap:8px; }
+  .icon-btn{
+    width:38px; height:38px;
+    border-radius:50%;
+    border:1px solid var(--border);
+    background: var(--surface-2);
+    color: var(--text-muted);
+    display:flex; align-items:center; justify-content:center;
+    font-size:16px;
+  }
+  .icon-btn:hover{ background: var(--surface-hover); color: var(--text); }
+
+  /* ---------- Main content ---------- */
+  main{
+    flex:1;
+    padding: 8px 20px 14px;
+    display:flex;
+    flex-direction:column;
+    gap:16px;
+  }
+
+  /* Today card */
+  .today-card{
+    background: var(--surface-2);
+    border:1px solid var(--border);
+    border-radius: var(--radius-md);
+    padding:16px 18px;
+    display:flex;
+    align-items:center;
+    justify-content:space-between;
+    text-align:left;
+    width:100%;
+  }
+  .today-card:hover{ background: var(--surface-hover); }
+  .today-card .today-text{
+    font-family: var(--font-display);
+    font-weight:600;
+    font-size:15px;
+  }
+  .today-card .today-sub{
+    font-size:11px;
+    color: var(--text-muted);
+    margin-top:2px;
+  }
+  .today-card .today-right{ display:flex; align-items:center; gap:10px; }
+  .pending-dot{
+    width:10px; height:10px;
+    border-radius:50%;
+    background: var(--success);
+    box-shadow: 0 0 0 0 rgba(var(--success-rgb), 0.7);
+  }
+  .pending-dot.blink{ animation: pulse-dot 1.6s ease-in-out infinite; }
+  @keyframes pulse-dot{
+    0%, 100% { opacity:1; box-shadow: 0 0 0 0 rgba(var(--success-rgb), 0.65); }
+    50% { opacity:0.45; box-shadow: 0 0 0 7px rgba(var(--success-rgb), 0); }
+  }
+  .today-arrow{ color: var(--text-muted); font-size:16px; }
+
+  /* Timer section */
+  .timer-section{
+    display:flex;
+    flex-direction:column;
+    align-items:center;
+    padding: 10px 0 4px;
+  }
+  .lamp-timer{ position:relative; width:230px; height:230px; }
+  .lamp-timer svg{ width:100%; height:100%; transform: rotate(-90deg); }
+  .lamp-timer .ring-bg{ fill:none; stroke: var(--border); stroke-width:10; }
+  .lamp-timer .ring-fg{
+    fill:none; stroke: var(--accent); stroke-width:10; stroke-linecap:round;
+    transition: stroke-dashoffset .35s ease, stroke .3s ease;
+    filter: drop-shadow(0 0 10px rgba(var(--accent-rgb),0.7));
+  }
+  .lamp-timer .ring-fg.live{ transition: stroke .3s ease; }
+  .lamp-timer.is-break .ring-fg{ stroke: var(--text-muted); filter:none; }
+  .lamp-timer.is-longbreak .ring-fg{ stroke: var(--success); filter: drop-shadow(0 0 10px rgba(var(--success-rgb),0.55)); }
+  .lamp-center{
+    position:absolute; inset:0;
+    display:flex; flex-direction:column; align-items:center; justify-content:center;
+  }
+  .lamp-center .digits{
+    font-family: var(--font-mono);
+    font-size:40px;
+    font-weight:600;
+    letter-spacing:0.02em;
+  }
+  .lamp-center .mode-label{
+    font-size:11px;
+    letter-spacing:0.12em;
+    text-transform:uppercase;
+    color: var(--text-muted);
+    margin-top:6px;
+  }
+  .cycle-dots{
+    display:flex; gap:6px; margin-top:10px;
+  }
+  .cycle-dots.hidden{ display:none; }
+  .cycle-dot{
+    width:6px; height:6px; border-radius:50%;
+    background: var(--border);
+    transition: background .3s ease, transform .3s cubic-bezier(0.34,1.56,0.64,1);
+  }
+  .cycle-dot.filled{ background: var(--accent); transform: scale(1.25); }
+
+  .current-subject{
+    margin-top:16px;
+    display:inline-flex;
+    align-items:center;
+    gap:8px;
+    background: var(--surface-2);
+    border:1px solid var(--border);
+    padding: 8px 16px;
+    border-radius: 999px;
+    font-size:13px;
+    font-weight:600;
+    max-width: 100%;
+    opacity:0;
+    transform: translateY(6px);
+    transition: opacity .3s ease, transform .3s ease;
+  }
+  .current-subject.show{ opacity:1; transform:none; }
+  .current-subject .swatch{
+    width:9px; height:9px; border-radius:50%; flex:none;
+  }
+  .current-subject .placeholder{ color: var(--text-muted); font-weight:500; }
+
+  .timer-controls{
+    display:flex;
+    gap:10px;
+    margin-top:18px;
+  }
+  .timer-controls .btn{ min-width:96px; }
+  .btn-secondary{
+    background: var(--surface-2);
+    color: var(--text);
+    border:1px solid var(--border);
+  }
+  .btn-secondary:hover{ background: var(--surface-hover); }
+
+  /* Last session card */
+  .last-session-card{
+    background: var(--surface-2);
+    border:1px solid var(--border);
+    border-radius: var(--radius-md);
+    padding: 14px 18px;
+    display:flex;
+    align-items:center;
+    justify-content:space-between;
+  }
+  .last-session-card .label{
+    font-size:11px;
+    color: var(--text-muted);
+    text-transform:uppercase;
+    letter-spacing:0.08em;
+    margin-bottom:4px;
+  }
+  .last-session-card .value{
+    font-weight:600;
+    font-size:14px;
+  }
+  .last-session-card .minutes{
+    font-family: var(--font-mono);
+    font-size:20px;
+    font-weight:600;
+    color: var(--accent);
+  }
+
+  /* ---------- Bottom nav ---------- */
+  .bottom-nav{
+    padding: 10px 20px 22px;
+    display:flex;
+    flex-direction:column;
+    gap:10px;
+  }
+  .nav-row{
+    display:flex;
+    align-items:center;
+    justify-content:space-between;
+    gap:10px;
+  }
+  .nav-square{
+    flex:1;
+    background: var(--surface-2);
+    border:1px solid var(--border);
+    color: var(--text);
+    border-radius: var(--radius-sm);
+    padding: 14px 8px;
+    font-weight:600;
+    font-size:12.5px;
+    text-align:center;
+  }
+  .nav-square:hover{ background: var(--surface-hover); }
+  .nav-square .ico{ display:block; font-size:16px; margin-bottom:4px; }
+
+  .fab-wrap{ position:relative; flex:none; }
+  .fab{
+    width:60px; height:60px;
+    border-radius:50%;
+    border:none;
+    background: var(--accent);
+    color:#14151A;
+    font-size:26px;
+    font-weight:600;
+    box-shadow: 0 10px 26px rgba(var(--accent-rgb),0.45);
+    display:flex; align-items:center; justify-content:center;
+    line-height:0;
+    transition: transform .45s cubic-bezier(0.34, 1.56, 0.64, 1), box-shadow .3s ease;
+  }
+  .fab:hover{ filter:brightness(1.05); }
+  .fab:active{ transform: scale(0.88); transition: transform .12s ease; }
+  .fab.open{ transform: rotate(45deg) scale(1.04); box-shadow: 0 6px 18px rgba(var(--accent-rgb),0.3); }
+  .fab.open:active{ transform: rotate(45deg) scale(0.92); }
+
+  /* Backdrop scrim behind the popover, iOS action-sheet style */
+  .picker-scrim{
+    position:fixed; inset:0;
+    background: rgba(6,7,11,0.001);
+    z-index: 35;
+    opacity:0;
+    pointer-events:none;
+    transition: opacity .35s ease;
+  }
+  .picker-scrim.open{ opacity:1; pointer-events:auto; background: rgba(6,7,11,0.28); }
+
+  /* Materia picker popover (above + button) */
+  .materia-picker{
+    position:absolute;
+    bottom: 74px;
+    left:50%;
+    width: 250px;
+    max-height: 260px;
+    overflow-y:auto;
+    background: var(--surface-2);
+    border:1px solid var(--border);
+    border-radius: var(--radius-md);
+    box-shadow: var(--shadow-soft);
+    padding:10px;
+    z-index: 40;
+    transform-origin: 50% 100%;
+    transform: translateX(-50%) translateY(10px) scale(0.85);
+    opacity:0;
+    visibility:hidden;
+    pointer-events:none;
+    transition: transform .4s cubic-bezier(0.34, 1.56, 0.64, 1), opacity .25s ease, visibility 0s linear .4s;
+  }
+  .materia-picker.open{
+    transform: translateX(-50%) translateY(0) scale(1);
+    opacity:1;
+    visibility:visible;
+    pointer-events:auto;
+    transition: transform .45s cubic-bezier(0.34, 1.56, 0.64, 1), opacity .3s ease;
+  }
+  .materia-picker .picker-title{
+    font-size:11px;
+    text-transform:uppercase;
+    letter-spacing:0.08em;
+    color: var(--text-muted);
+    padding: 4px 8px 8px;
+  }
+  .materia-option{
+    display:flex; align-items:center; gap:10px;
+    padding:10px 8px;
+    border-radius: var(--radius-sm);
+    font-size:14px;
+    font-weight:600;
+  }
+  .materia-option:hover{ background: var(--surface-hover); }
+  .materia-option .swatch{ width:10px; height:10px; border-radius:50%; flex:none; }
+  .materia-empty{
+    padding: 10px 8px;
+    font-size:13px;
+    color: var(--text-muted);
+    line-height:1.5;
+  }
+  .materia-empty button{
+    margin-top:8px;
+    background:none;
+    border:none;
+    color: var(--accent);
+    font-weight:700;
+    font-size:13px;
+    padding:0;
+  }
+
+  /* ---------- Modals ---------- */
+  .modal-overlay{
+    position:fixed; inset:0;
+    background: rgba(6,7,11,0.6);
+    backdrop-filter: blur(2px);
+    display:flex;
+    align-items:flex-end;
+    justify-content:center;
+    z-index: 100;
+  }
+  @media (min-width: 560px){
+    .modal-overlay{ align-items:center; }
+  }
+  .modal{
+    background: var(--surface);
+    border: 1px solid var(--border);
+    width:100%;
+    max-width: 460px;
+    max-height: 82vh;
+    overflow-y:auto;
+    border-radius: 22px 22px 0 0;
+    padding: 22px 22px 28px;
+  }
+  @media (min-width: 560px){
+    .modal{ border-radius: var(--radius-lg); max-height: 78vh; }
+  }
+  .modal-head{
+    display:flex; align-items:center; justify-content:space-between;
+    margin-bottom:16px;
+  }
+  .modal-head h2{
+    font-family: var(--font-display);
+    font-size:19px;
+    margin:0;
+  }
+  .modal-close{
+    background: var(--surface-2);
+    border:1px solid var(--border);
+    width:32px; height:32px;
+    border-radius:50%;
+    color: var(--text-muted);
+    font-size:15px;
+  }
+  .modal-close:hover{ color: var(--text); }
+
+  .materia-row{
+    display:flex; align-items:center; gap:12px;
+    padding:12px;
+    border:1px solid var(--border);
+    border-radius: var(--radius-sm);
+    margin-bottom:8px;
+  }
+  .materia-row .swatch{
+    width:14px; height:14px; border-radius:50%; flex:none;
+    border:2px solid transparent; padding:0; cursor:pointer;
+    transition: transform .15s ease, border-color .2s ease;
+  }
+  .materia-row .swatch:hover{ transform: scale(1.25); border-color: var(--border); }
+  .materia-row .name{ flex:1; font-weight:600; font-size:14px; }
+  .materia-row .stat{ font-size:11px; color: var(--text-muted); }
+  .materia-row .del{
+    background:none; border:none; color: var(--danger); font-size:13px; font-weight:700;
+  }
+
+  .swatch-row{ display:flex; gap:8px; margin: 6px 0 4px; flex-wrap:wrap; }
+  .swatch-pick{
+    width:34px; height:34px; border-radius:50%;
+    border:2px solid transparent;
+    display:flex; align-items:center; justify-content:center;
+    color:#14151A; font-size:13px;
+  }
+  .swatch-pick.selected{ border-color: var(--text); }
+
+  .theme-toggle{ display:flex; gap:8px; margin-top:6px; }
+  .theme-opt{
+    flex:1; padding:12px; border-radius: var(--radius-sm);
+    border:1px solid var(--border); background: var(--surface-2);
+    font-weight:600; font-size:13px; color: var(--text-muted);
+  }
+  .theme-opt.selected{ border-color: var(--accent); color: var(--text); }
+
+  .duration-row{ display:flex; gap:10px; }
+  .duration-row .field{ flex:1; }
+  .duration-row input:disabled{ opacity:0.5; }
+
+  /* Presets de tiempo */
+  .preset-list{ display:flex; flex-direction:column; gap:8px; margin: 6px 0 4px; }
+  .preset-card{
+    display:flex; align-items:center; gap:12px;
+    padding:12px 14px;
+    border:1px solid var(--border);
+    border-radius: var(--radius-sm);
+    background: var(--surface-2);
+    text-align:left;
+    transition: border-color .2s ease, background .2s ease, transform .15s ease;
+  }
+  .preset-card:active{ transform: scale(0.98); }
+  .preset-card.selected{ border-color: var(--accent); background: rgba(var(--accent-rgb),0.08); }
+  .preset-card .preset-ico{ font-size:20px; flex:none; }
+  .preset-card .preset-name{ font-weight:700; font-size:13.5px; }
+  .preset-card .preset-desc{ font-size:11.5px; color: var(--text-muted); margin-top:2px; }
+  .preset-card .preset-time{
+    margin-left:auto; font-family: var(--font-mono); font-size:12px;
+    color: var(--text-muted); white-space:nowrap; flex:none;
+  }
+  .preset-card.selected .preset-time{ color: var(--accent); }
+
+  /* Switch estilo iOS */
+  .switch-row{
+    display:flex; align-items:center; justify-content:space-between; gap:12px;
+    margin-top: 4px;
+  }
+  .switch-label{ font-weight:600; font-size:13.5px; }
+  .switch-sub{ font-size:11.5px; color: var(--text-muted); margin-top:2px; max-width:230px; }
+  .ios-switch{
+    flex:none;
+    width:50px; height:30px;
+    border-radius:999px;
+    border:none;
+    background: var(--border);
+    position:relative;
+    padding:0;
+    transition: background .3s ease;
+  }
+  .ios-switch .knob{
+    position:absolute;
+    top:3px; left:3px;
+    width:24px; height:24px;
+    border-radius:50%;
+    background:#fff;
+    box-shadow: 0 2px 6px rgba(0,0,0,0.25);
+    transition: transform .4s cubic-bezier(0.34, 1.56, 0.64, 1);
+  }
+  .ios-switch.on{ background: var(--accent); }
+  .ios-switch.on .knob{ transform: translateX(20px); }
+
+  .cycles-extra{
+    display:grid;
+    grid-template-rows: 0fr;
+    transition: grid-template-rows .35s ease;
+    overflow:hidden;
+    margin-top: 2px;
+  }
+  .cycles-extra.open{ grid-template-rows: 1fr; margin-top:14px; }
+  .cycles-extra > div{ overflow:hidden; }
+  .section-divider{
+    border:none; border-top:1px solid var(--border);
+    margin: 18px 0;
+  }
+  .resume-actions{ display:flex; gap:10px; margin-top:18px; }
+
+  /* ---------------- Selector de color (rueda + hex) ---------------- */
+  .color-swatch-btn{
+    width:40px; height:40px; border-radius:50%; flex:none;
+    border:2px solid var(--border); padding:0; cursor:pointer;
+    transition: transform .15s ease;
+  }
+  .color-swatch-btn:hover{ transform: scale(1.08); }
+
+  .custom-color-trigger{
+    display:flex; align-items:center; gap:10px;
+    width:100%; padding:12px 14px; border-radius:9px;
+    border:1px solid var(--border); background: var(--bg); color: var(--text);
+    font-size:13.5px; font-weight:600;
+  }
+  html[data-theme="light"] .custom-color-trigger{ background: var(--surface); }
+  .custom-color-trigger:hover{ background: var(--surface-hover); }
+  .custom-color-dot{ width:20px; height:20px; border-radius:50%; flex:none; border:2px solid var(--border); }
+
+  .color-popover-modal{ max-width: 320px; }
+  .color-popover-head{ display:flex; align-items:center; justify-content:space-between; margin-bottom:16px; }
+  .color-popover-head h2{ font-family: var(--font-display); font-size:17px; margin:0; }
+
+  .color-wheel-wrap{ display:flex; justify-content:center; margin: 4px 0 18px; }
+  .color-wheel{
+    position:relative; width:190px; height:190px; border-radius:50%;
+    background:
+      radial-gradient(circle at center, rgba(255,255,255,1) 0%, rgba(255,255,255,0) 72%),
+      conic-gradient(from 0deg, red 0deg, yellow 60deg, lime 120deg, cyan 180deg, blue 240deg, magenta 300deg, red 360deg);
+    box-shadow: inset 0 0 0 1px var(--border), var(--shadow-soft);
+    touch-action:none; cursor:pointer;
+  }
+  .wheel-handle{
+    position:absolute; width:22px; height:22px; border-radius:50%;
+    border:3px solid #fff;
+    box-shadow: 0 0 0 1.5px rgba(0,0,0,0.35), 0 2px 6px rgba(0,0,0,0.35);
+    transform: translate(-50%,-50%);
+    pointer-events:none;
+  }
+  .hex-row{
+    display:flex; align-items:center; gap:2px;
+    border:1px solid var(--border); background: var(--bg);
+    border-radius:9px; padding: 0 4px 0 14px;
+  }
+  html[data-theme="light"] .hex-row{ background: var(--surface); }
+  .hex-row .hash{ color: var(--text-muted); font-family: var(--font-mono); font-weight:700; }
+  .hex-row input{
+    flex:1; border:none; background:transparent; padding: 12px 8px;
+    color: var(--text); font-family: var(--font-mono); font-size:15px;
+    letter-spacing:0.04em; text-transform:uppercase;
+  }
+  .hex-row input:focus{ outline:none; }
+  .hex-row .hex-preview{ width:30px; height:30px; border-radius:8px; flex:none; border:1px solid var(--border); }
+
+  .history-item{
+    display:flex; align-items:center; justify-content:space-between;
+    padding: 12px 4px;
+    border-bottom: 1px solid var(--border);
+  }
+  .history-item:last-child{ border-bottom:none; }
+  .history-item .h-left .h-materia{ font-weight:600; font-size:14px; }
+  .history-item .h-left .h-date{ font-size:11px; color: var(--text-muted); margin-top:2px; }
+  .history-item .h-min{ font-family: var(--font-mono); font-weight:600; color: var(--accent); }
+  .empty-state{
+    text-align:center;
+    padding: 30px 10px;
+    color: var(--text-muted);
+    font-size:14px;
+    line-height:1.6;
+  }
+
+  .achv-summary{
+    display:flex; align-items:center; justify-content:space-between;
+    background: var(--surface-2);
+    border:1px solid var(--border);
+    border-radius: var(--radius-sm);
+    padding: 14px 16px;
+    margin-bottom: 14px;
+  }
+  .achv-summary .achv-summary-label{ font-size:11px; text-transform:uppercase; letter-spacing:0.08em; color: var(--text-muted); }
+  .achv-summary .achv-summary-count{ font-family: var(--font-mono); font-weight:700; font-size:20px; color: var(--accent); margin-top:2px; }
+
+  .achv-grid{ display:flex; flex-direction:column; gap:10px; }
+  .achv{
+    position:relative;
+    display:flex; align-items:center; gap:14px;
+    padding:14px;
+    border:1px solid var(--border);
+    border-radius: var(--radius-sm);
+    background: var(--surface-2);
+    opacity: 0.55;
+    transition: opacity .3s ease, border-color .3s ease, background .3s ease;
+    overflow:hidden;
+  }
+  .achv.unlocked{
+    opacity:1;
+    background: linear-gradient(135deg, rgba(var(--accent-rgb),0.14), rgba(var(--accent-rgb),0.03));
+    border-color: rgba(var(--accent-rgb),0.45);
+  }
+  .achv .achv-ico{
+    width:42px; height:42px; border-radius:50%;
+    background: var(--bg);
+    display:flex; align-items:center; justify-content:center;
+    font-size:19px; flex:none;
+    filter: grayscale(1);
+    transition: filter .3s ease, background .3s ease, transform .3s ease;
+  }
+  .achv.unlocked .achv-ico{
+    background: var(--accent);
+    filter:none;
+    box-shadow: 0 4px 14px rgba(var(--accent-rgb),0.5);
+  }
+  .achv .achv-name{ font-weight:700; font-size:13.5px; display:flex; align-items:center; gap:6px; }
+  .achv .achv-check{ display:none; font-size:11px; color: var(--accent); }
+  .achv.unlocked .achv-check{ display:inline; }
+  .achv .achv-desc{ font-size:11.5px; color: var(--text-muted); margin-top:2px; }
+  .achv .achv-progress{ font-size:10.5px; color: var(--accent); margin-top:4px; font-family: var(--font-mono); font-weight:600; }
+
+  .achv.just-unlocked{ animation: achv-pop .8s ease; }
+  @keyframes achv-pop{
+    0%{ transform: scale(0.92); box-shadow: 0 0 0 0 rgba(var(--accent-rgb),0); }
+    35%{ transform: scale(1.035); box-shadow: 0 0 0 10px rgba(var(--accent-rgb),0.18); }
+    70%{ transform: scale(0.995); box-shadow: 0 0 0 3px rgba(var(--accent-rgb),0.1); }
+    100%{ transform: scale(1); box-shadow: 0 0 0 0 rgba(var(--accent-rgb),0); }
+  }
+  .achv.just-unlocked .achv-ico{ animation: achv-ico-spin .8s ease; }
+  @keyframes achv-ico-spin{
+    0%{ transform: scale(0.7) rotate(-15deg); }
+    55%{ transform: scale(1.18) rotate(8deg); }
+    100%{ transform: scale(1) rotate(0deg); }
+  }
+
+  .info-block{ font-size:13.5px; line-height:1.7; color: var(--text-muted); margin-bottom:14px; }
+  .info-block strong{ color: var(--text); }
+
+  .toast{
+    position:fixed;
+    bottom: 28px; left:50%;
+    transform: translateX(-50%) translateY(10px);
+    background: var(--surface-2);
+    border:1px solid var(--border);
+    color: var(--text);
+    padding: 12px 18px;
+    border-radius: 999px;
+    font-size:13px;
+    font-weight:600;
+    box-shadow: var(--shadow-soft);
+    opacity:0;
+    transition: opacity .25s ease, transform .25s ease;
+    z-index: 300;
+    max-width: 88%;
+    text-align:center;
+  }
+  .toast.show{ opacity:1; transform: translateX(-50%) translateY(0); }
+
+  @media (prefers-reduced-motion: reduce){
+    *{ animation-duration: 0.001ms !important; transition-duration: 0.001ms !important; }
+  }
+</style>
+</head>
+<body>
+
+<!-- ============ AUTH SCREEN ============ -->
+<div id="authScreen">
+  <div class="auth-brand">
+    <div class="lamp-mark"></div>
+    <h1>Enfoque</h1>
+    <p>Tu técnica Pomodoro para estudiar por materias</p>
+  </div>
+
+  <div class="auth-card">
+    <div class="auth-tabs">
+      <button class="auth-tab active" id="tabLogin" onclick="switchAuthTab('login')">Iniciar sesión</button>
+      <button class="auth-tab" id="tabRegister" onclick="switchAuthTab('register')">Registrarme</button>
+    </div>
+
+    <!-- Login form -->
+    <form id="formLogin" onsubmit="return handleLogin(event)">
+      <div class="field">
+        <label for="loginUser">Usuario</label>
+        <input type="text" id="loginUser" autocomplete="username" required>
+      </div>
+      <div class="field">
+        <label for="loginPass">Contraseña</label>
+        <input type="password" id="loginPass" autocomplete="current-password" required>
+      </div>
+      <p class="auth-error" id="loginError"></p>
+      <button type="submit" class="btn btn-primary">Entrar</button>
+    </form>
+
+    <!-- Register form -->
+    <form id="formRegister" class="hidden" onsubmit="return handleRegister(event)">
+      <div class="field">
+        <label for="regName">¿Cómo quieres que te llamemos?</label>
+        <input type="text" id="regName" placeholder="Ej. Sofía" required>
+      </div>
+      <div class="field">
+        <label for="regUser">Usuario</label>
+        <input type="text" id="regUser" autocomplete="username" required>
+      </div>
+      <div class="field">
+        <label for="regPass">Contraseña</label>
+        <input type="password" id="regPass" autocomplete="new-password" required minlength="4">
+      </div>
+      <p class="auth-error" id="registerError"></p>
+      <button type="submit" class="btn btn-primary">Crear cuenta</button>
+    </form>
+
+    <p class="auth-hint">Tus datos se guardan solo en este navegador (localStorage), no hay servidor detrás. Si cambias de dispositivo, empiezas de cero ahí.</p>
+  </div>
+</div>
+
+<!-- ============ APP SHELL ============ -->
+<div class="app-frame hidden" id="appShell">
+  <header class="app-header">
+    <div class="brand">
+      <span class="lamp-dot"></span>
+      <div>
+        <h1>Enfoque</h1>
+        <p class="greet" id="greetText">Hola</p>
+      </div>
+    </div>
+    <div class="header-actions">
+      <button class="icon-btn" title="Personalizar" onclick="openModal('modalPersonalizar')">⚙</button>
+      <button class="icon-btn" title="Cerrar sesión" onclick="logout()">⏻</button>
+    </div>
+  </header>
+
+  <main>
+    <button class="today-card" id="todayCard" onclick="onTodayCardClick()">
+      <div>
+        <div class="today-text">¿Qué tienes para hoy?</div>
+        <div class="today-sub" id="todaySub">Sin materias registradas aún</div>
+      </div>
+      <div class="today-right">
+        <span class="pending-dot" id="pendingDot"></span>
+        <span class="today-arrow">›</span>
+      </div>
+    </button>
+
+    <section class="timer-section">
+      <div class="lamp-timer" id="lampTimer">
+        <svg viewBox="0 0 220 220">
+          <circle class="ring-bg" cx="110" cy="110" r="98"></circle>
+          <circle class="ring-fg" id="ringFg" cx="110" cy="110" r="98"></circle>
+        </svg>
+        <div class="lamp-center">
+          <div class="digits" id="digits">25:00</div>
+          <div class="mode-label" id="modeLabel">Enfoque</div>
+          <div class="cycle-dots hidden" id="cycleDots"></div>
+        </div>
+      </div>
+
+      <div class="current-subject" id="currentSubjectChip">
+        <span class="placeholder">Elige una materia con el botón +</span>
+      </div>
+
+      <div class="timer-controls">
+        <button class="btn btn-secondary" id="btnResetTimer" onclick="resetTimer()">Reiniciar</button>
+        <button class="btn btn-primary" id="btnStartPause" onclick="toggleTimer()" style="width:auto;">Iniciar</button>
+      </div>
+    </section>
+
+    <div class="last-session-card" id="lastSessionCard">
+      <div>
+        <div class="label">Última sesión</div>
+        <div class="value" id="lastSessionSubject">Aún no registras ninguna</div>
+      </div>
+      <div class="minutes" id="lastSessionMinutes">—</div>
+    </div>
+  </main>
+
+  <nav class="bottom-nav">
+    <div class="nav-row">
+      <button class="nav-square" onclick="openModal('modalMaterias')">
+        <span class="ico">📚</span>Materias
+      </button>
+
+      <div class="fab-wrap">
+        <div class="picker-scrim" id="pickerScrim" onclick="toggleMateriaPicker()"></div>
+        <button class="fab" id="fabBtn" onclick="toggleMateriaPicker()">+</button>
+        <div class="materia-picker" id="materiaPicker"></div>
+      </div>
+
+      <button class="nav-square" onclick="openModal('modalRegistro')">
+        <span class="ico">🗂️</span>Registro
+      </button>
+    </div>
+    <div class="nav-row">
+      <button class="nav-square" onclick="openModal('modalInfo')">
+        <span class="ico">ℹ️</span>Más información
+      </button>
+      <button class="nav-square" onclick="openModal('modalLogros')">
+        <span class="ico">🏆</span>Logros
+      </button>
+    </div>
+  </nav>
+</div>
+
+<!-- ============ MODAL: MATERIAS ============ -->
+<div class="modal-overlay hidden" id="modalMateriasOverlay" onclick="closeOnOverlay(event,'modalMaterias')">
+  <div class="modal">
+    <div class="modal-head">
+      <h2>Materias</h2>
+      <button class="modal-close" onclick="closeModal('modalMaterias')">✕</button>
+    </div>
+    <form onsubmit="return handleAddMateria(event)" style="display:flex; gap:8px; margin-bottom:16px; align-items:center;">
+      <button type="button" class="color-swatch-btn" id="newMateriaColorBtn" style="background:#F2A65A;" title="Elegir color" onclick="openColorPopover('new')"></button>
+      <input type="text" id="newMateriaName" placeholder="Ej. Matemáticas" required style="flex:1; padding:12px 14px; border-radius:9px; border:1px solid var(--border); background: var(--bg); color: var(--text);">
+      <button type="submit" class="btn btn-primary" style="width:auto;">Agregar</button>
+    </form>
+    <div id="materiasList"></div>
+  </div>
+</div>
+
+<!-- ============ MODAL: REGISTRO ============ -->
+<div class="modal-overlay hidden" id="modalRegistroOverlay" onclick="closeOnOverlay(event,'modalRegistro')">
+  <div class="modal">
+    <div class="modal-head">
+      <h2>Registro de estudio</h2>
+      <button class="modal-close" onclick="closeModal('modalRegistro')">✕</button>
+    </div>
+    <div id="historyList"></div>
+  </div>
+</div>
+
+<!-- ============ MODAL: MÁS INFORMACIÓN ============ -->
+<div class="modal-overlay hidden" id="modalInfoOverlay" onclick="closeOnOverlay(event,'modalInfo')">
+  <div class="modal">
+    <div class="modal-head">
+      <h2>Más información</h2>
+      <button class="modal-close" onclick="closeModal('modalInfo')">✕</button>
+    </div>
+    <div class="info-block">
+      <strong>¿Qué es la técnica Pomodoro?</strong><br>
+      Consiste en estudiar en bloques de tiempo enfocado (por defecto 25 min), seguidos de un descanso corto (5 min). Cada bloque completo se registra como una sesión.
+    </div>
+    <div class="info-block">
+      <strong>¿Cómo se guarda mi información?</strong><br>
+      Todo (usuario, materias, historial, logros y preferencias) se guarda en el <strong>localStorage</strong> de este navegador. No existe un servidor ni base de datos en la nube: si borras los datos del navegador o entras desde otro dispositivo, no verás tu historial.
+    </div>
+    <div class="info-block">
+      <strong>¿Cómo empiezo una sesión?</strong><br>
+      Toca el botón <strong>+</strong>, elige la materia y presiona <strong>Iniciar</strong>. Al completarse, se guarda automáticamente en tu registro.
+    </div>
+    <div class="info-block">
+      <strong>Personalización</strong><br>
+      Desde el ícono ⚙ en la parte superior puedes cambiar el color de acento, el tema claro/oscuro y la duración de tus bloques de enfoque y descanso.
+    </div>
+  </div>
+</div>
+
+<!-- ============ MODAL: LOGROS ============ -->
+<div class="modal-overlay hidden" id="modalLogrosOverlay" onclick="closeOnOverlay(event,'modalLogros')">
+  <div class="modal">
+    <div class="modal-head">
+      <h2>Logros</h2>
+      <button class="modal-close" onclick="closeModal('modalLogros')">✕</button>
+    </div>
+    <div class="achv-summary">
+      <div>
+        <div class="achv-summary-label">Desbloqueados</div>
+        <div class="achv-summary-count" id="achvSummaryCount">0/0</div>
+      </div>
+      <span style="font-size:26px;">🏆</span>
+    </div>
+    <div class="achv-grid" id="achvList"></div>
+  </div>
+</div>
+
+<!-- ============ MODAL: PERSONALIZAR ============ -->
+<div class="modal-overlay hidden" id="modalPersonalizarOverlay" onclick="closeOnOverlay(event,'modalPersonalizar')">
+  <div class="modal">
+    <div class="modal-head">
+      <h2>Personalizar</h2>
+      <button class="modal-close" onclick="closeModal('modalPersonalizar')">✕</button>
+    </div>
+
+    <div class="field">
+      <label>Color de acento</label>
+      <div class="swatch-row" id="accentSwatches"></div>
+      <div class="field" style="margin-top:10px;">
+        <label>O personaliza el tuyo</label>
+        <button type="button" class="custom-color-trigger" id="customColorBtn" onclick="openColorPopover('accent')">
+          <span class="custom-color-dot" id="customColorDot" style="background:#F2A65A;"></span>
+          <span>Elegir con código hex o rueda de colores</span>
+        </button>
+      </div>
+    </div>
+
+    <div class="field">
+      <label>Tema</label>
+      <div class="theme-toggle">
+        <button type="button" class="theme-opt" id="themeDarkBtn" onclick="setThemePreview('dark')">🌙 Oscuro</button>
+        <button type="button" class="theme-opt" id="themeLightBtn" onclick="setThemePreview('light')">☀️ Claro</button>
+      </div>
+    </div>
+
+    <hr class="section-divider">
+
+    <div class="field">
+      <label>Enfoque de tiempos</label>
+      <div class="preset-list" id="presetList"></div>
+    </div>
+
+    <div class="field">
+      <label>Duración de los bloques (minutos)</label>
+      <div class="duration-row">
+        <div class="field">
+          <label for="focusMinInput">Enfoque</label>
+          <input type="number" id="focusMinInput" min="1" max="90" style="width:100%; padding:12px 14px; border-radius:9px; border:1px solid var(--border); background: var(--bg); color: var(--text);">
+        </div>
+        <div class="field">
+          <label for="breakMinInput">Descanso</label>
+          <input type="number" id="breakMinInput" min="1" max="60" style="width:100%; padding:12px 14px; border-radius:9px; border:1px solid var(--border); background: var(--bg); color: var(--text);">
+        </div>
+      </div>
+    </div>
+
+    <hr class="section-divider">
+
+    <div class="field">
+      <div class="switch-row">
+        <div>
+          <div class="switch-label">Ciclos con descanso largo</div>
+          <div class="switch-sub">Tras completar varias sesiones de enfoque seguidas, toma un descanso más largo. Si lo dejas apagado, tu ciclo de enfoque/descanso se repite sin descansos adicionales.</div>
+        </div>
+        <button type="button" class="ios-switch" id="cyclesToggle" onclick="toggleCyclesSwitch()">
+          <span class="knob"></span>
+        </button>
+      </div>
+      <div class="cycles-extra" id="cyclesExtra">
+        <div>
+          <div class="duration-row" style="margin-top:14px;">
+            <div class="field">
+              <label for="cyclesCountInput">Sesiones antes del descanso largo</label>
+              <input type="number" id="cyclesCountInput" min="2" max="8" style="width:100%; padding:12px 14px; border-radius:9px; border:1px solid var(--border); background: var(--bg); color: var(--text);">
+            </div>
+            <div class="field">
+              <label for="longBreakMinInput">Descanso largo (min)</label>
+              <input type="number" id="longBreakMinInput" min="10" max="45" style="width:100%; padding:12px 14px; border-radius:9px; border:1px solid var(--border); background: var(--bg); color: var(--text);">
+            </div>
+          </div>
+        </div>
+      </div>
+    </div>
+
+    <hr class="section-divider">
+
+    <div class="field">
+      <label for="displayNameInput">Nombre a mostrar</label>
+      <input type="text" id="displayNameInput" style="width:100%; padding:12px 14px; border-radius:9px; border:1px solid var(--border); background: var(--bg); color: var(--text);">
+    </div>
+
+    <button class="btn btn-primary" onclick="savePersonalizacion()">Guardar cambios</button>
+  </div>
+</div>
+
+<!-- ============ MODAL: RETOMAR SESIÓN (no se cierra tocando afuera, requiere elegir) ============ -->
+<div class="modal-overlay hidden" id="modalResumeOverlay">
+  <div class="modal">
+    <div class="modal-head">
+      <h2>Tenías algo a medias ⏳</h2>
+    </div>
+    <div class="info-block" id="resumeInfoText"></div>
+    <div class="resume-actions">
+      <button class="btn btn-secondary" style="flex:1;" onclick="resolveResume('restart')">Reiniciar</button>
+      <button class="btn btn-primary" style="flex:1; margin-top:0;" onclick="resolveResume('continue')">Continuar donde quedé</button>
+    </div>
+  </div>
+</div>
+
+<!-- ============ PANEL: SELECTOR DE COLOR (rueda + hex) ============ -->
+<div class="modal-overlay hidden" id="colorPopoverOverlay" onclick="closeOnOverlay(event,'colorPopover')">
+  <div class="modal color-popover-modal">
+    <div class="color-popover-head">
+      <h2>Elige un color</h2>
+      <button class="modal-close" onclick="closeModal('colorPopover')">✕</button>
+    </div>
+    <div class="color-wheel-wrap">
+      <div class="color-wheel" id="colorWheel">
+        <div class="wheel-handle" id="wheelHandle"></div>
+      </div>
+    </div>
+    <div class="hex-row">
+      <span class="hash">#</span>
+      <input type="text" id="hexInput" maxlength="6" placeholder="F2A65A" autocomplete="off" spellcheck="false">
+      <span class="hex-preview" id="hexPreview"></span>
+    </div>
+  </div>
+</div>
+
+<div class="toast" id="toast"></div>
+
+<script>
+/* =========================================================
+   ENFOQUE — Pomodoro por materias
+   Persistencia: localStorage (sin backend / sin base de datos real).
+   Estructura guardada por usuario:
+   {
+     password: string (ofuscada con btoa, NO es cifrado seguro),
+     name: string,
+     materias: [{id, nombre, color}],
+     historial: [{id, materiaId, materiaNombre, minutos, fecha}],
+     cycleProgress: number (sesiones de enfoque seguidas desde el último descanso largo),
+     settings: {accent, theme, focusMin, breakMin, cyclesEnabled, cyclesCount, longBreakMin}
+   }
+========================================================= */
+
+const DB_KEY = 'enfoque_users_v1';
+const SESSION_KEY = 'enfoque_current_user_v1';
+
+const ACCENTS = [
+  { name:'Ámbar',    hex:'#F2A65A' },
+  { name:'Turquesa', hex:'#7FB7BE' },
+  { name:'Orquídea', hex:'#C97BD1' },
+  { name:'Coral',    hex:'#E5657A' },
+  { name:'Cielo',    hex:'#7FA8F2' },
+];
+
+const MATERIA_PALETTE = ['#F2A65A','#7FB7BE','#C97BD1','#E5657A','#7FA8F2','#8FD19E','#E0C25A'];
+let newMateriaColor = MATERIA_PALETTE[0];
+
+/* Enfoques de tiempo sugeridos por la técnica Pomodoro (más el personalizado) */
+const PRESETS = [
+  { id:'clasico',     ico:'🍅', name:'Clásico',              focus:25, brk:5,  desc:'Principiantes, tareas mecánicas o evitar la procrastinación' },
+  { id:'maximo',      ico:'⚡', name:'Máximo enfoque',       focus:50, brk:10, desc:'Tareas complejas, redacción profunda o programación' },
+  { id:'intermedio',  ico:'⏱️', name:'Intermedio',            focus:45, brk:10, desc:'Estudiar o leer, si 25 min se queda corto y 50 cansa' },
+  { id:'cortas',      ico:'🧠', name:'Sesiones cortas',      focus:15, brk:3,  desc:'Días de poca energía o al retomar el hábito' },
+  { id:'personalizado', ico:'🎛️', name:'Personalizado',      focus:null, brk:null, desc:'Elige tú mismo los tiempos de enfoque y descanso' },
+];
+
+let currentUser = null;
+let currentUserData = null;
+
+let mode = 'focus';
+let remaining = 25 * 60;
+let totalForMode = 25 * 60;
+let running = false;
+let timerInterval = null;
+let selectedMateriaId = null;
+
+/* ---------------- Persistencia ---------------- */
+function loadDB(){
+  try{ return JSON.parse(localStorage.getItem(DB_KEY) || '{}'); }
+  catch(e){ return {}; }
+}
+function saveDB(db){ localStorage.setItem(DB_KEY, JSON.stringify(db)); }
+
+function persistUser(){
+  const db = loadDB();
+  db[currentUser] = currentUserData;
+  saveDB(db);
+}
+
+/* ---------------- Utilidades ---------------- */
+function toast(msg){
+  const t = document.getElementById('toast');
+  t.textContent = msg;
+  t.classList.add('show');
+  clearTimeout(toast._t);
+  toast._t = setTimeout(()=> t.classList.remove('show'), 2600);
+}
+
+function hexToRgb(hex){
+  const h = hex.replace('#','');
+  const bigint = parseInt(h.length===3 ? h.split('').map(c=>c+c).join('') : h, 16);
+  return `${(bigint>>16)&255}, ${(bigint>>8)&255}, ${bigint&255}`;
+}
+
+function fmtDate(iso){
+  const d = new Date(iso);
+  return d.toLocaleDateString('es-CO', { day:'2-digit', month:'short' }) + ' · ' +
+         d.toLocaleTimeString('es-CO', { hour:'2-digit', minute:'2-digit' });
+}
+
+/* ---------------- Auth ---------------- */
+function switchAuthTab(which){
+  document.getElementById('tabLogin').classList.toggle('active', which==='login');
+  document.getElementById('tabRegister').classList.toggle('active', which==='register');
+  document.getElementById('formLogin').classList.toggle('hidden', which!=='login');
+  document.getElementById('formRegister').classList.toggle('hidden', which!=='register');
+}
+
+function handleLogin(e){
+  e.preventDefault();
+  const user = document.getElementById('loginUser').value.trim();
+  const pass = document.getElementById('loginPass').value;
+  const errEl = document.getElementById('loginError');
+  const db = loadDB();
+  const u = db[user];
+  if(!u || u.password !== btoa(pass)){
+    errEl.textContent = 'Usuario o contraseña incorrectos.';
+    return false;
+  }
+  errEl.textContent = '';
+  localStorage.setItem(SESSION_KEY, user);
+  bootSession(user, u);
+  return false;
+}
+
+function handleRegister(e){
+  e.preventDefault();
+  const name = document.getElementById('regName').value.trim();
+  const user = document.getElementById('regUser').value.trim();
+  const pass = document.getElementById('regPass').value;
+  const errEl = document.getElementById('registerError');
+  const db = loadDB();
+  if(db[user]){
+    errEl.textContent = 'Ese nombre de usuario ya existe.';
+    return false;
+  }
+  errEl.textContent = '';
+  const newUser = {
+    password: btoa(pass),
+    name: name || user,
+    materias: [],
+    historial: [],
+    cycleProgress: 0,
+    longBreaksEarned: 0,
+    unlockedAchievements: [],
+    settings: { accent:'#F2A65A', theme:'dark', focusMin:25, breakMin:5, cyclesEnabled:false, cyclesCount:4, longBreakMin:20 }
+  };
+  db[user] = newUser;
+  saveDB(db);
+  localStorage.setItem(SESSION_KEY, user);
+  bootSession(user, newUser);
+  return false;
+}
+
+function logout(){
+  pauseTimer();
+  localStorage.removeItem(SESSION_KEY);
+  location.reload();
+}
+
+/* ---------------- Arranque de sesión ---------------- */
+function bootSession(username, data){
+  currentUser = username;
+  currentUserData = data;
+  if(!currentUserData.settings) currentUserData.settings = { accent:'#F2A65A', theme:'dark', focusMin:25, breakMin:5 };
+  const s = currentUserData.settings;
+  if(s.cyclesEnabled === undefined) s.cyclesEnabled = false;
+  if(s.cyclesCount === undefined) s.cyclesCount = 4;
+  if(s.longBreakMin === undefined) s.longBreakMin = 20;
+  if(currentUserData.cycleProgress === undefined) currentUserData.cycleProgress = 0;
+  if(currentUserData.longBreaksEarned === undefined) currentUserData.longBreaksEarned = 0;
+  if(currentUserData.unlockedAchievements === undefined) currentUserData.unlockedAchievements = [];
+  applyTheme();
+  document.getElementById('authScreen').classList.add('hidden');
+  document.getElementById('appShell').classList.remove('hidden');
+  document.getElementById('greetText').textContent = 'Hola, ' + currentUserData.name;
+
+  const saved = currentUserData.timerState;
+  const hasProgress = saved && saved.remaining > 0 && (saved.remaining < saved.totalForMode || saved.running);
+  if(hasProgress){
+    showResumeModal(saved);
+  } else {
+    setMode('focus', true);
+  }
+  renderAll();
+}
+
+function applyTheme(){
+  const s = currentUserData.settings;
+  document.documentElement.style.setProperty('--accent', s.accent);
+  document.documentElement.style.setProperty('--accent-rgb', hexToRgb(s.accent));
+  document.documentElement.setAttribute('data-theme', s.theme);
+}
+
+/* ---------------- Retomar cronómetro tras cerrar sesión ---------------- */
+let resumeSavedState = null;
+
+function showResumeModal(saved){
+  resumeSavedState = saved;
+  const labels = { focus:'enfoque', break:'descanso', longbreak:'descanso largo' };
+  const m = Math.floor(saved.remaining / 60).toString().padStart(2,'0');
+  const sec = Math.floor(saved.remaining % 60).toString().padStart(2,'0');
+  const materia = currentUserData.materias.find(x => x.id === saved.selectedMateriaId);
+  const materiaTxt = materia ? ` de <strong>${escapeHtml(materia.nombre)}</strong>` : '';
+  document.getElementById('resumeInfoText').innerHTML =
+    `Cuando cerraste sesión tenías un bloque de <strong>${labels[saved.mode]}</strong>${materiaTxt} en marcha, ` +
+    `con <strong>${m}:${sec}</strong> restantes. ¿Quieres continuarlo desde ahí o empezar un bloque nuevo?`;
+  document.getElementById('modalResumeOverlay').classList.remove('hidden');
+}
+
+function resolveResume(choice){
+  const saved = resumeSavedState;
+  document.getElementById('modalResumeOverlay').classList.add('hidden');
+
+  if(choice === 'continue' && saved){
+    mode = saved.mode;
+    remaining = saved.remaining;
+    totalForMode = saved.totalForMode;
+    selectedMateriaId = saved.selectedMateriaId;
+    running = false;
+    document.getElementById('btnStartPause').textContent = 'Iniciar';
+    const labels = { focus:'Enfoque', break:'Descanso', longbreak:'Descanso largo' };
+    document.getElementById('modeLabel').textContent = labels[mode];
+    const lamp = document.getElementById('lampTimer');
+    lamp.classList.toggle('is-break', mode === 'break');
+    lamp.classList.toggle('is-longbreak', mode === 'longbreak');
+    updateTimerDisplay();
+    saveTimerState();
+    toast('Retomando justo donde lo dejaste.');
+  } else {
+    currentUserData.timerState = null;
+    persistUser();
+    setMode('focus', true);
+    toast('Empezamos un bloque nuevo.');
+  }
+  renderAll();
+}
+
+function renderAll(){
+  renderPendingDot();
+  renderLastSession();
+  renderMateriasList();
+  renderHistoryList();
+  renderAchievements();
+  renderCurrentSubjectChip();
+  renderCycleDots();
+}
+
+/* ---------------- Materias ---------------- */
+function handleAddMateria(e){
+  e.preventDefault();
+  const input = document.getElementById('newMateriaName');
+  const nombre = input.value.trim();
+  if(!nombre) return false;
+  const color = newMateriaColor || MATERIA_PALETTE[currentUserData.materias.length % MATERIA_PALETTE.length];
+  currentUserData.materias.push({ id: 'm_' + Date.now(), nombre, color });
+  persistUser();
+  input.value = '';
+  newMateriaColor = MATERIA_PALETTE[currentUserData.materias.length % MATERIA_PALETTE.length];
+  document.getElementById('newMateriaColorBtn').style.background = newMateriaColor;
+  renderMateriasList();
+  renderPendingDot();
+  checkAchievements();
+  toast('Materia agregada.');
+  return false;
+}
+
+function deleteMateria(id){
+  currentUserData.materias = currentUserData.materias.filter(m => m.id !== id);
+  if(selectedMateriaId === id){
+    selectedMateriaId = null;
+    renderCurrentSubjectChip();
+  }
+  persistUser();
+  renderMateriasList();
+  renderPendingDot();
+}
+
+function renderMateriasList(){
+  const el = document.getElementById('materiasList');
+  if(currentUserData.materias.length === 0){
+    el.innerHTML = '<div class="empty-state">Aún no tienes materias. Agrega la primera arriba ↑</div>';
+    return;
+  }
+  el.innerHTML = currentUserData.materias.map(m => {
+    const total = currentUserData.historial.filter(h => h.materiaId === m.id)
+                    .reduce((acc,h) => acc + h.minutos, 0);
+    return `<div class="materia-row">
+      <button class="swatch" style="background:${m.color}" title="Cambiar color" onclick="openColorPopover('edit','${m.id}')"></button>
+      <span class="name">${escapeHtml(m.nombre)}</span>
+      <span class="stat">${total} min</span>
+      <button class="del" onclick="deleteMateria('${m.id}')">Eliminar</button>
+    </div>`;
+  }).join('');
+}
+
+function escapeHtml(str){
+  const div = document.createElement('div');
+  div.textContent = str;
+  return div.innerHTML;
+}
+
+/* ---------------- Selector de materia (+) ---------------- */
+function toggleMateriaPicker(){
+  const picker = document.getElementById('materiaPicker');
+  const fab = document.getElementById('fabBtn');
+  const scrim = document.getElementById('pickerScrim');
+  const isOpen = picker.classList.contains('open');
+  if(!isOpen){
+    renderMateriaPicker();
+    picker.classList.add('open');
+    fab.classList.add('open');
+    scrim.classList.add('open');
+  } else {
+    picker.classList.remove('open');
+    fab.classList.remove('open');
+    scrim.classList.remove('open');
+  }
+}
+
+function renderMateriaPicker(){
+  const picker = document.getElementById('materiaPicker');
+  if(currentUserData.materias.length === 0){
+    picker.innerHTML = `<div class="materia-empty">
+      Todavía no agregas materias.
+      <button onclick="toggleMateriaPicker(); openModal('modalMaterias')">Agregar una ahora →</button>
+    </div>`;
+    return;
+  }
+  picker.innerHTML = '<div class="picker-title">Elige la materia de tu sesión</div>' +
+    currentUserData.materias.map(m => `
+      <button class="materia-option" onclick="selectMateria('${m.id}')">
+        <span class="swatch" style="background:${m.color}"></span>
+        <span>${escapeHtml(m.nombre)}</span>
+      </button>
+    `).join('');
+}
+
+function selectMateria(id){
+  selectedMateriaId = id;
+  renderCurrentSubjectChip();
+  toggleMateriaPicker();
+}
+
+function renderCurrentSubjectChip(){
+  const chip = document.getElementById('currentSubjectChip');
+  const m = currentUserData.materias.find(x => x.id === selectedMateriaId);
+  if(!m){
+    chip.classList.remove('show');
+    chip.innerHTML = '<span class="placeholder">Elige una materia con el botón +</span>';
+    return;
+  }
+  chip.innerHTML = `<span class="swatch" style="background:${m.color}"></span><span>${escapeHtml(m.nombre)}</span>`;
+  chip.classList.add('show');
+}
+
+/* ---------------- Tarjeta "¿Qué tienes para hoy?" ---------------- */
+function computePendingToday(){
+  const todayStr = new Date().toDateString();
+  const studiedIds = new Set(
+    currentUserData.historial
+      .filter(h => new Date(h.fecha).toDateString() === todayStr)
+      .map(h => h.materiaId)
+  );
+  return currentUserData.materias.filter(m => !studiedIds.has(m.id));
+}
+
+function renderPendingDot(){
+  const pending = computePendingToday();
+  const dot = document.getElementById('pendingDot');
+  const sub = document.getElementById('todaySub');
+  if(currentUserData.materias.length === 0){
+    dot.classList.remove('blink');
+    dot.style.visibility = 'hidden';
+    sub.textContent = 'Agrega materias para ver tus pendientes de hoy';
+    return;
+  }
+  dot.style.visibility = 'visible';
+  if(pending.length > 0){
+    dot.classList.add('blink');
+    sub.textContent = pending.length + ' materia(s) sin estudiar hoy';
+  } else {
+    dot.classList.remove('blink');
+    sub.textContent = 'Ya estudiaste todas tus materias hoy 🎉';
+  }
+}
+
+function onTodayCardClick(){
+  // Aquí, más adelante, se redirigirá a una página dedicada con el detalle
+  // de tareas y pendientes del día. Por ahora dejamos un aviso rápido.
+  toast('Próximamente: aquí verás el detalle de tus pendientes de hoy.');
+}
+
+/* ---------------- Temporizador ---------------- */
+let timerEndAt = null;
+let rafId = null;
+
+function setMode(newMode, silent){
+  mode = newMode;
+  const s = currentUserData.settings;
+  const mins = mode === 'focus' ? s.focusMin : (mode === 'longbreak' ? s.longBreakMin : s.breakMin);
+  totalForMode = mins * 60;
+  remaining = totalForMode;
+  running = false;
+  timerEndAt = null;
+  if(currentUserData){
+    currentUserData.timerState = null;
+    persistUser();
+  }
+  const labels = { focus:'Enfoque', break:'Descanso', longbreak:'Descanso largo' };
+  document.getElementById('modeLabel').textContent = labels[mode];
+  const lamp = document.getElementById('lampTimer');
+  lamp.classList.toggle('is-break', mode === 'break');
+  lamp.classList.toggle('is-longbreak', mode === 'longbreak');
+  document.getElementById('ringFg').classList.remove('live');
+  updateTimerDisplay();
+  renderCycleDots();
+  if(!silent){
+    // nada extra por ahora
+  }
+}
+
+function updateTimerDisplay(){
+  const m = Math.floor(remaining / 60).toString().padStart(2,'0');
+  const s = Math.floor(remaining % 60).toString().padStart(2,'0');
+  document.getElementById('digits').textContent = `${m}:${s}`;
+  updateRingToFraction(totalForMode > 0 ? (remaining / totalForMode) : 0);
+}
+
+function updateRingToFraction(progress){
+  const r = 98;
+  const circumference = 2 * Math.PI * r;
+  const ring = document.getElementById('ringFg');
+  ring.style.strokeDasharray = `${circumference}`;
+  ring.style.strokeDashoffset = `${circumference * (1 - progress)}`;
+}
+
+/* Anima el anillo cuadro a cuadro mientras el cronómetro corre, para un barrido
+   continuo en vez de saltos cada segundo. */
+function animateRing(){
+  if(!running || !timerEndAt) return;
+  const msLeft = Math.max(0, timerEndAt - Date.now());
+  const fraction = totalForMode > 0 ? (msLeft / (totalForMode * 1000)) : 0;
+  updateRingToFraction(fraction);
+  rafId = requestAnimationFrame(animateRing);
+}
+
+function toggleTimer(){
+  if(running){ pauseTimer(); }
+  else { startTimer(); }
+}
+
+function updateDigitsOnly(){
+  const m = Math.floor(remaining / 60).toString().padStart(2,'0');
+  const s = Math.floor(remaining % 60).toString().padStart(2,'0');
+  document.getElementById('digits').textContent = `${m}:${s}`;
+}
+
+function startTimer(){
+  if(mode === 'focus' && !selectedMateriaId){
+    toast('Elige una materia con el botón + antes de iniciar.');
+    return;
+  }
+  running = true;
+  timerEndAt = Date.now() + remaining * 1000;
+  document.getElementById('btnStartPause').textContent = 'Pausar';
+  document.getElementById('ringFg').classList.add('live');
+  saveTimerState();
+  rafId = requestAnimationFrame(animateRing);
+  timerInterval = setInterval(()=>{
+    remaining = Math.max(0, Math.round((timerEndAt - Date.now()) / 1000));
+    updateDigitsOnly();
+    saveTimerState();
+    if(remaining <= 0){
+      clearInterval(timerInterval);
+      cancelAnimationFrame(rafId);
+      onTimerComplete();
+    }
+  }, 1000);
+}
+
+function pauseTimer(){
+  if(timerEndAt){
+    remaining = Math.max(0, Math.round((timerEndAt - Date.now()) / 1000));
+  }
+  running = false;
+  timerEndAt = null;
+  clearInterval(timerInterval);
+  cancelAnimationFrame(rafId);
+  document.getElementById('ringFg').classList.remove('live');
+  document.getElementById('btnStartPause').textContent = 'Iniciar';
+  updateTimerDisplay();
+  saveTimerState();
+}
+
+function resetTimer(){
+  pauseTimer();
+  setMode(mode);
+}
+
+/* Guarda una "foto" del cronómetro para poder recuperarla si se cierra sesión a mitad de una sesión */
+function saveTimerState(){
+  if(!currentUserData) return;
+  currentUserData.timerState = {
+    mode, remaining, totalForMode, selectedMateriaId, running,
+    savedAt: Date.now()
+  };
+  persistUser();
+}
+
+function onTimerComplete(){
+  running = false;
+  document.getElementById('btnStartPause').textContent = 'Iniciar';
+  const s = currentUserData.settings;
+
+  if(mode === 'focus'){
+    const materia = currentUserData.materias.find(m => m.id === selectedMateriaId);
+    const registro = {
+      id: 'h_' + Date.now(),
+      materiaId: selectedMateriaId,
+      materiaNombre: materia ? materia.nombre : 'Materia eliminada',
+      minutos: currentUserData.settings.focusMin,
+      fecha: new Date().toISOString()
+    };
+    currentUserData.historial.unshift(registro);
+    currentUserData.cycleProgress = (currentUserData.cycleProgress || 0) + 1;
+
+    const earnedLongBreak = s.cyclesEnabled && currentUserData.cycleProgress >= s.cyclesCount;
+    if(earnedLongBreak){
+      currentUserData.cycleProgress = 0;
+      currentUserData.longBreaksEarned = (currentUserData.longBreaksEarned || 0) + 1;
+    }
+
+    persistUser();
+    renderLastSession();
+    renderPendingDot();
+    renderHistoryList();
+    renderMateriasList();
+    renderAchievements();
+    renderCycleDots();
+
+    if(earnedLongBreak){
+      toast(`¡${s.cyclesCount} sesiones completas! Toca un descanso largo de ${s.longBreakMin} min.`);
+      setMode('longbreak');
+    } else {
+      toast(`¡Sesión completada! ${registro.minutos} min de ${registro.materiaNombre}.`);
+      setMode('break');
+    }
+  } else if(mode === 'longbreak'){
+    toast('Descanso largo terminado. Tu ciclo vuelve a empezar. 💪');
+    setMode('focus');
+  } else {
+    toast('Descanso terminado. ¿Lista para otra sesión?');
+    setMode('focus');
+  }
+}
+
+function renderCycleDots(){
+  const wrap = document.getElementById('cycleDots');
+  const s = currentUserData.settings;
+  if(!s.cyclesEnabled){
+    wrap.classList.add('hidden');
+    wrap.innerHTML = '';
+    return;
+  }
+  wrap.classList.remove('hidden');
+  const total = s.cyclesCount;
+  const progress = mode === 'longbreak' ? total : (currentUserData.cycleProgress || 0);
+  let html = '';
+  for(let i = 0; i < total; i++){
+    html += `<span class="cycle-dot ${i < progress ? 'filled' : ''}"></span>`;
+  }
+  wrap.innerHTML = html;
+}
+
+function renderLastSession(){
+  const last = currentUserData.historial[0];
+  if(!last){
+    document.getElementById('lastSessionSubject').textContent = 'Aún no registras ninguna';
+    document.getElementById('lastSessionMinutes').textContent = '—';
+    return;
+  }
+  document.getElementById('lastSessionSubject').textContent = last.materiaNombre + ' · ' + fmtDate(last.fecha);
+  document.getElementById('lastSessionMinutes').textContent = last.minutos + ' min';
+}
+
+/* ---------------- Registro (historial) ---------------- */
+function renderHistoryList(){
+  const el = document.getElementById('historyList');
+  if(currentUserData.historial.length === 0){
+    el.innerHTML = '<div class="empty-state">Todavía no completas ninguna sesión. Cuando termines un bloque de enfoque, aparecerá aquí.</div>';
+    return;
+  }
+  el.innerHTML = currentUserData.historial.map(h => `
+    <div class="history-item">
+      <div class="h-left">
+        <div class="h-materia">${escapeHtml(h.materiaNombre)}</div>
+        <div class="h-date">${fmtDate(h.fecha)}</div>
+      </div>
+      <div class="h-min">${h.minutos} min</div>
+    </div>
+  `).join('');
+}
+
+/* ---------------- Logros ---------------- */
+let achievementsToCelebrate = [];
+
+function evaluateAchievements(){
+  const hist = currentUserData.historial;
+  const totalMin = hist.reduce((a,h) => a + h.minutos, 0);
+  const distinctDays = new Set(hist.map(h => new Date(h.fecha).toDateString())).size;
+  const numMaterias = currentUserData.materias.length;
+  const hasEarlyMorning = hist.some(h => new Date(h.fecha).getHours() < 8);
+  const hasLateNight = hist.some(h => new Date(h.fecha).getHours() >= 22);
+  const hasWeekend = hist.some(h => [0,6].includes(new Date(h.fecha).getDay()));
+  const longBreaksEarned = currentUserData.longBreaksEarned || 0;
+
+  return [
+    { id:'primer_paso', name:'Primer paso', desc:'Completa tu primera sesión', ico:'🌱',
+      met: hist.length >= 1 },
+    { id:'constante', name:'Constante', desc:'Completa 5 sesiones', ico:'🔥',
+      met: hist.length >= 5, progress: `${Math.min(hist.length,5)}/5 sesiones` },
+    { id:'imparable', name:'Imparable', desc:'Completa 10 sesiones', ico:'🚀',
+      met: hist.length >= 10, progress: `${Math.min(hist.length,10)}/10 sesiones` },
+    { id:'maratonista', name:'Maratonista', desc:'Acumula 10 horas de estudio', ico:'🏅',
+      met: totalMin >= 600, progress: `${Math.min(totalMin,600)}/600 min` },
+    { id:'centurion', name:'Centurión', desc:'Acumula 25 horas de estudio', ico:'👑',
+      met: totalMin >= 1500, progress: `${Math.min(totalMin,1500)}/1500 min` },
+    { id:'rutina', name:'Rutina', desc:'Estudia en 3 días distintos', ico:'📅',
+      met: distinctDays >= 3, progress: `${Math.min(distinctDays,3)}/3 días` },
+    { id:'racha_semanal', name:'Racha semanal', desc:'Estudia en 7 días distintos', ico:'🗓️',
+      met: distinctDays >= 7, progress: `${Math.min(distinctDays,7)}/7 días` },
+    { id:'explorador', name:'Explorador', desc:'Registra 3 materias distintas', ico:'🧭',
+      met: numMaterias >= 3, progress: `${Math.min(numMaterias,3)}/3 materias` },
+    { id:'multitarea', name:'Multitarea', desc:'Registra 5 materias distintas', ico:'🎯',
+      met: numMaterias >= 5, progress: `${Math.min(numMaterias,5)}/5 materias` },
+    { id:'madrugador', name:'Madrugador', desc:'Completa una sesión antes de las 8 a.m.', ico:'🌅',
+      met: hasEarlyMorning },
+    { id:'buho', name:'Búho nocturno', desc:'Completa una sesión después de las 10 p.m.', ico:'🦉',
+      met: hasLateNight },
+    { id:'finde', name:'Fin de semana productivo', desc:'Estudia un sábado o domingo', ico:'🌤️',
+      met: hasWeekend },
+    { id:'ciclo', name:'Maestro del ciclo', desc:'Gana tu primer descanso largo', ico:'🔁',
+      met: longBreaksEarned >= 1 },
+  ];
+}
+
+/* Revisa los logros y "sella" los que se cumplan. Una vez desbloqueado, un logro
+   queda guardado para siempre (aunque después borres materias o cambien tus stats). */
+function checkAchievements(){
+  if(!currentUserData.unlockedAchievements) currentUserData.unlockedAchievements = [];
+  const defs = evaluateAchievements();
+  const newlyUnlocked = [];
+  defs.forEach(d => {
+    if(d.met && !currentUserData.unlockedAchievements.includes(d.id)){
+      currentUserData.unlockedAchievements.push(d.id);
+      newlyUnlocked.push(d);
+    }
+  });
+  if(newlyUnlocked.length){
+    persistUser();
+    newlyUnlocked.forEach(d => {
+      achievementsToCelebrate.push(d.id);
+      toast(`🏆 ¡Logro desbloqueado! ${d.name}`);
+    });
+  }
+  return newlyUnlocked;
+}
+
+function renderAchievements(){
+  checkAchievements();
+  const defs = evaluateAchievements();
+  const unlockedIds = new Set(currentUserData.unlockedAchievements || []);
+
+  document.getElementById('achvSummaryCount').textContent = `${unlockedIds.size}/${defs.length}`;
+
+  document.getElementById('achvList').innerHTML = defs.map(d => {
+    const unlocked = unlockedIds.has(d.id);
+    const celebrate = achievementsToCelebrate.includes(d.id);
+    const sub = (!unlocked && d.progress) ? d.progress : d.desc;
+    return `<div class="achv ${unlocked ? 'unlocked' : ''} ${celebrate ? 'just-unlocked' : ''}">
+      <div class="achv-ico">${d.ico}</div>
+      <div>
+        <div class="achv-name">${d.name} <span class="achv-check">✓ Conseguido</span></div>
+        <div class="${(!unlocked && d.progress) ? 'achv-progress' : 'achv-desc'}">${sub}</div>
+      </div>
+    </div>`;
+  }).join('');
+
+  achievementsToCelebrate = [];
+}
+
+/* ---------------- Personalización ---------------- */
+function renderAccentSwatches(){
+  const wrap = document.getElementById('accentSwatches');
+  wrap.innerHTML = ACCENTS.map(a => `
+    <button type="button" class="swatch-pick" data-hex="${a.hex}"
+      style="background:${a.hex}" title="${a.name}" onclick="pickAccentPreview('${a.hex}')">
+    </button>
+  `).join('');
+}
+
+let previewAccent = null;
+let previewTheme = null;
+
+function pickAccentPreview(hex){
+  previewAccent = hex;
+  document.getElementById('customColorDot').style.background = hex;
+  document.querySelectorAll('.swatch-pick').forEach(el=>{
+    el.classList.toggle('selected', el.dataset.hex.toLowerCase() === hex.toLowerCase());
+  });
+}
+
+function setThemePreview(theme){
+  previewTheme = theme;
+  document.getElementById('themeDarkBtn').classList.toggle('selected', theme==='dark');
+  document.getElementById('themeLightBtn').classList.toggle('selected', theme==='light');
+}
+
+/* ---------------- Selector de color (rueda cromática + código hex) ---------------- */
+function hexToHsl(hex){
+  hex = hex.replace('#','');
+  if(hex.length===3) hex = hex.split('').map(c=>c+c).join('');
+  const r = parseInt(hex.substring(0,2),16)/255;
+  const g = parseInt(hex.substring(2,4),16)/255;
+  const b = parseInt(hex.substring(4,6),16)/255;
+  const max = Math.max(r,g,b), min = Math.min(r,g,b);
+  let h=0, s=0, l=(max+min)/2;
+  if(max !== min){
+    const d = max-min;
+    s = l > 0.5 ? d/(2-max-min) : d/(max+min);
+    switch(max){
+      case r: h = (g-b)/d + (g<b?6:0); break;
+      case g: h = (b-r)/d + 2; break;
+      default: h = (r-g)/d + 4;
+    }
+    h *= 60;
+  }
+  return { h, s: s*100, l: l*100 };
+}
+
+function hslToHex(h,s,l){
+  s/=100; l/=100;
+  const c=(1-Math.abs(2*l-1))*s;
+  const x=c*(1-Math.abs((h/60)%2-1));
+  const m=l-c/2;
+  let r=0,g=0,b=0;
+  if(h<60){ r=c; g=x; b=0; }
+  else if(h<120){ r=x; g=c; b=0; }
+  else if(h<180){ r=0; g=c; b=x; }
+  else if(h<240){ r=0; g=x; b=c; }
+  else if(h<300){ r=x; g=0; b=c; }
+  else { r=c; g=0; b=x; }
+  const toHex = v => Math.round((v+m)*255).toString(16).padStart(2,'0');
+  return '#' + toHex(r)+toHex(g)+toHex(b);
+}
+
+let colorPopoverTarget = null;
+
+function openColorPopover(type, materiaId){
+  let initial = '#F2A65A';
+  if(type === 'new') initial = newMateriaColor;
+  else if(type === 'edit'){
+    const m = currentUserData.materias.find(x => x.id === materiaId);
+    initial = m ? m.color : initial;
+  } else if(type === 'accent'){
+    initial = previewAccent || currentUserData.settings.accent;
+  }
+  colorPopoverTarget = { type, materiaId };
+  document.getElementById('hexInput').value = initial.replace('#','').toUpperCase();
+  document.getElementById('hexPreview').style.background = initial;
+  document.getElementById('colorPopoverOverlay').classList.remove('hidden');
+  requestAnimationFrame(()=> positionHandleFromHex(initial));
+}
+
+function positionHandleFromHex(hex){
+  const { h, s } = hexToHsl(hex);
+  const wheel = document.getElementById('colorWheel');
+  const R = (wheel.clientWidth || 190) / 2;
+  const rad = h * Math.PI / 180;
+  const dist = (Math.min(s,100) / 100) * R;
+  const dx = dist * Math.sin(rad);
+  const dy = -dist * Math.cos(rad);
+  positionHandle(dx + R, dy + R);
+}
+
+function positionHandle(x,y){
+  const handle = document.getElementById('wheelHandle');
+  handle.style.left = x + 'px';
+  handle.style.top = y + 'px';
+}
+
+function wheelPointToColor(clientX, clientY){
+  const wheel = document.getElementById('colorWheel');
+  const rect = wheel.getBoundingClientRect();
+  const R = rect.width / 2;
+  const cx = rect.left + R;
+  const cy = rect.top + R;
+  let dx = clientX - cx;
+  let dy = clientY - cy;
+  let dist = Math.sqrt(dx*dx + dy*dy);
+  if(dist > R){ dx = dx*R/dist; dy = dy*R/dist; dist = R; }
+  let angle = Math.atan2(dx, -dy) * 180 / Math.PI;
+  angle = (angle + 360) % 360;
+  const sat = Math.min(100, (dist / R) * 100);
+  positionHandle(dx + R, dy + R);
+  return hslToHex(angle, sat, 50);
+}
+
+function applyColorToTarget(hex){
+  if(!colorPopoverTarget) return;
+  const t = colorPopoverTarget;
+  if(t.type === 'new'){
+    newMateriaColor = hex;
+    document.getElementById('newMateriaColorBtn').style.background = hex;
+  } else if(t.type === 'edit'){
+    const m = currentUserData.materias.find(x => x.id === t.materiaId);
+    if(m){
+      m.color = hex;
+      persistUser();
+      renderMateriasList();
+      renderCurrentSubjectChip();
+    }
+  } else if(t.type === 'accent'){
+    pickAccentPreview(hex);
+  }
+}
+
+function handleHexInput(){
+  const raw = document.getElementById('hexInput').value.replace(/[^0-9a-fA-F]/g,'').slice(0,6).toUpperCase();
+  document.getElementById('hexInput').value = raw;
+  if(raw.length === 6){
+    const hex = '#' + raw;
+    document.getElementById('hexPreview').style.background = hex;
+    positionHandleFromHex(hex);
+    applyColorToTarget(hex);
+  }
+}
+
+let wheelDragging = false;
+(function initColorWheel(){
+  const wheel = document.getElementById('colorWheel');
+  function handleWheelPoint(e){
+    const hex = wheelPointToColor(e.clientX, e.clientY);
+    document.getElementById('hexInput').value = hex.replace('#','').toUpperCase();
+    document.getElementById('hexPreview').style.background = hex;
+    applyColorToTarget(hex);
+  }
+  wheel.addEventListener('pointerdown', (e)=>{
+    wheelDragging = true;
+    wheel.setPointerCapture(e.pointerId);
+    handleWheelPoint(e);
+  });
+  wheel.addEventListener('pointermove', (e)=>{
+    if(!wheelDragging) return;
+    handleWheelPoint(e);
+  });
+  wheel.addEventListener('pointerup', ()=> wheelDragging = false);
+  wheel.addEventListener('pointercancel', ()=> wheelDragging = false);
+  document.getElementById('hexInput').addEventListener('input', handleHexInput);
+})();
+
+let previewPresetId = 'clasico';
+let previewCyclesEnabled = false;
+
+function matchPreset(focusMin, breakMin){
+  const found = PRESETS.find(p => p.id !== 'personalizado' && p.focus === focusMin && p.brk === breakMin);
+  return found ? found.id : 'personalizado';
+}
+
+function renderPresetCards(){
+  const wrap = document.getElementById('presetList');
+  wrap.innerHTML = PRESETS.map(p => `
+    <button type="button" class="preset-card ${p.id === previewPresetId ? 'selected' : ''}" data-preset="${p.id}" onclick="selectPreset('${p.id}')">
+      <span class="preset-ico">${p.ico}</span>
+      <span>
+        <div class="preset-name">${p.name}</div>
+        <div class="preset-desc">${p.desc}</div>
+      </span>
+      <span class="preset-time">${p.focus ? p.focus + '/' + p.brk + ' min' : 'A tu medida'}</span>
+    </button>
+  `).join('');
+}
+
+function selectPreset(id){
+  previewPresetId = id;
+  document.querySelectorAll('.preset-card').forEach(el=>{
+    el.classList.toggle('selected', el.dataset.preset === id);
+  });
+  const focusInput = document.getElementById('focusMinInput');
+  const breakInput = document.getElementById('breakMinInput');
+  const preset = PRESETS.find(p => p.id === id);
+  if(preset.id !== 'personalizado'){
+    focusInput.value = preset.focus;
+    breakInput.value = preset.brk;
+    focusInput.disabled = true;
+    breakInput.disabled = true;
+  } else {
+    focusInput.disabled = false;
+    breakInput.disabled = false;
+  }
+}
+
+function toggleCyclesSwitch(){
+  previewCyclesEnabled = !previewCyclesEnabled;
+  applyCyclesSwitchUI();
+}
+
+function applyCyclesSwitchUI(){
+  document.getElementById('cyclesToggle').classList.toggle('on', previewCyclesEnabled);
+  document.getElementById('cyclesExtra').classList.toggle('open', previewCyclesEnabled);
+}
+
+function openPersonalizarModal(){
+  renderAccentSwatches();
+  previewAccent = currentUserData.settings.accent;
+  previewTheme = currentUserData.settings.theme;
+  pickAccentPreview(previewAccent);
+  setThemePreview(previewTheme);
+
+  previewPresetId = matchPreset(currentUserData.settings.focusMin, currentUserData.settings.breakMin);
+  renderPresetCards();
+  document.getElementById('focusMinInput').value = currentUserData.settings.focusMin;
+  document.getElementById('breakMinInput').value = currentUserData.settings.breakMin;
+  document.getElementById('focusMinInput').disabled = previewPresetId !== 'personalizado';
+  document.getElementById('breakMinInput').disabled = previewPresetId !== 'personalizado';
+
+  previewCyclesEnabled = currentUserData.settings.cyclesEnabled;
+  applyCyclesSwitchUI();
+  document.getElementById('cyclesCountInput').value = currentUserData.settings.cyclesCount;
+  document.getElementById('longBreakMinInput').value = currentUserData.settings.longBreakMin;
+
+  document.getElementById('displayNameInput').value = currentUserData.name;
+
+  // Si el usuario edita los minutos a mano, pasamos a "Personalizado" automáticamente
+  document.getElementById('focusMinInput').oninput = () => selectPreset('personalizado');
+  document.getElementById('breakMinInput').oninput = () => selectPreset('personalizado');
+}
+
+function savePersonalizacion(){
+  const focusMin = parseInt(document.getElementById('focusMinInput').value, 10) || 25;
+  const breakMin = parseInt(document.getElementById('breakMinInput').value, 10) || 5;
+  const cyclesCount = parseInt(document.getElementById('cyclesCountInput').value, 10) || 4;
+  const longBreakMin = parseInt(document.getElementById('longBreakMinInput').value, 10) || 20;
+  const name = document.getElementById('displayNameInput').value.trim() || currentUser;
+
+  currentUserData.settings.accent = previewAccent || currentUserData.settings.accent;
+  currentUserData.settings.theme = previewTheme || currentUserData.settings.theme;
+  currentUserData.settings.focusMin = Math.min(90, Math.max(1, focusMin));
+  currentUserData.settings.breakMin = Math.min(60, Math.max(1, breakMin));
+  currentUserData.settings.cyclesEnabled = previewCyclesEnabled;
+  currentUserData.settings.cyclesCount = Math.min(8, Math.max(2, cyclesCount));
+  currentUserData.settings.longBreakMin = Math.min(45, Math.max(10, longBreakMin));
+  currentUserData.name = name;
+
+  persistUser();
+  applyTheme();
+  document.getElementById('greetText').textContent = 'Hola, ' + currentUserData.name;
+  if(!running) setMode(mode);
+  renderCycleDots();
+  closeModal('modalPersonalizar');
+  toast('Preferencias guardadas.');
+}
+
+/* ---------------- Modales genéricos ---------------- */
+function openModal(id){
+  if(id === 'modalPersonalizar') openPersonalizarModal();
+  if(id === 'modalMaterias') renderMateriasList();
+  if(id === 'modalRegistro') renderHistoryList();
+  if(id === 'modalLogros') renderAchievements();
+  document.getElementById(id + 'Overlay').classList.remove('hidden');
+}
+function closeModal(id){
+  document.getElementById(id + 'Overlay').classList.add('hidden');
+}
+function closeOnOverlay(e, id){
+  if(e.target.id === id + 'Overlay') closeModal(id);
+}
+document.addEventListener('click', function(e){
+  const picker = document.getElementById('materiaPicker');
+  const fab = document.getElementById('fabBtn');
+  const scrim = document.getElementById('pickerScrim');
+  if(!picker || !picker.classList.contains('open')) return;
+  if(!picker.contains(e.target) && e.target !== fab && e.target !== scrim){
+    picker.classList.remove('open');
+    fab.classList.remove('open');
+    scrim.classList.remove('open');
+  }
+});
+
+/* Red de seguridad: si cierran la pestaña/navegador a mitad de una sesión,
+   guardamos el estado justo antes de que se descargue la página. */
+window.addEventListener('beforeunload', function(){
+  if(currentUserData && running){
+    saveTimerState();
+  }
+});
+
+/* ---------------- Arranque de la app ---------------- */
+(function init(){
+  const savedUser = localStorage.getItem(SESSION_KEY);
+  if(savedUser){
+    const db = loadDB();
+    if(db[savedUser]){
+      bootSession(savedUser, db[savedUser]);
+      return;
+    }
+  }
+  // Sin sesión activa: se queda en la pantalla de auth (ya visible por defecto)
+})();
+</script>
+</body>
+</html>
