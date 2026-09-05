@@ -519,6 +519,17 @@
   }
   .materia-option:hover{ background: var(--surface-hover); }
   .materia-option .swatch{ width:10px; height:10px; border-radius:50%; flex:none; }
+  .materia-saved-badge{
+    margin-left:auto;
+    font-family: var(--font-mono);
+    font-size:11px;
+    font-weight:600;
+    color: var(--accent);
+    background: rgba(var(--accent-rgb),0.12);
+    padding: 3px 8px;
+    border-radius:999px;
+    flex:none;
+  }
   .materia-empty{
     padding: 10px 8px;
     font-size:13px;
@@ -1164,6 +1175,20 @@
   </div>
 </div>
 
+<!-- ============ MODAL: RETOMAR TIEMPO GUARDADO DE UNA MATERIA ============ -->
+<div class="modal-overlay hidden" id="modalMateriaResumeOverlay">
+  <div class="modal">
+    <div class="modal-head">
+      <h2>Tenías tiempo guardado ⏸</h2>
+    </div>
+    <div class="info-block" id="materiaResumeText"></div>
+    <div class="resume-actions">
+      <button class="btn btn-secondary" style="flex:1;" onclick="resolveMateriaResume('restart')">Empezar de cero</button>
+      <button class="btn btn-primary" style="flex:1; margin-top:0;" onclick="resolveMateriaResume('continue')">Continuar con ese tiempo</button>
+    </div>
+  </div>
+</div>
+
 <!-- ============ MODAL: DETENER SESIÓN ============ -->
 <div class="modal-overlay hidden" id="modalStopOverlay" onclick="closeOnOverlay(event,'modalStop')">
   <div class="modal">
@@ -1468,9 +1493,16 @@ function renderMateriasList(){
   el.innerHTML = currentUserData.materias.map(m => {
     const total = currentUserData.historial.filter(h => h.materiaId === m.id)
                     .reduce((acc,h) => acc + h.minutos, 0);
+    let saved = '';
+    if(m.savedRemaining && m.savedRemaining > 0){
+      const mm = Math.floor(m.savedRemaining/60).toString().padStart(2,'0');
+      const ss = Math.floor(m.savedRemaining%60).toString().padStart(2,'0');
+      saved = `<span class="materia-saved-badge">⏸ ${mm}:${ss}</span>`;
+    }
     return `<div class="materia-row">
       <button class="swatch" style="background:${m.color}" title="Cambiar color" onclick="openColorPopover('edit','${m.id}')"></button>
       <span class="name">${escapeHtml(m.nombre)}</span>
+      ${saved}
       <span class="stat">${total} min</span>
       <button class="del" onclick="deleteMateria('${m.id}')">Eliminar</button>
     </div>`;
@@ -1511,18 +1543,92 @@ function renderMateriaPicker(){
     return;
   }
   picker.innerHTML = '<div class="picker-title">Elige la materia de tu sesión</div>' +
-    currentUserData.materias.map(m => `
-      <button class="materia-option" onclick="selectMateria('${m.id}')">
+    currentUserData.materias.map(m => {
+      let saved = '';
+      if(m.savedRemaining && m.savedRemaining > 0){
+        const mm = Math.floor(m.savedRemaining/60).toString().padStart(2,'0');
+        const ss = Math.floor(m.savedRemaining%60).toString().padStart(2,'0');
+        saved = `<span class="materia-saved-badge">⏸ ${mm}:${ss}</span>`;
+      }
+      return `<button class="materia-option" onclick="selectMateria('${m.id}')">
         <span class="swatch" style="background:${m.color}"></span>
         <span>${escapeHtml(m.nombre)}</span>
-      </button>
-    `).join('');
+        ${saved}
+      </button>`;
+    }).join('');
 }
 
+/* Al elegir una materia distinta a la que estaba activa en un bloque de enfoque
+   a medias, el tiempo restante se guarda EN LA MATERIA que se deja (no viaja a
+   la nueva). Si la materia elegida ya tenía tiempo guardado de antes, se
+   pregunta si quiere continuar con ese tiempo o empezar de cero. */
 function selectMateria(id){
+  if(id === selectedMateriaId){
+    toggleMateriaPicker();
+    return;
+  }
+
+  const previousId = selectedMateriaId;
+  const previousMateria = currentUserData.materias.find(m => m.id === previousId);
+  if(previousMateria && mode === 'focus' && (running || remaining < totalForMode) && remaining > 0){
+    pauseTimer();
+    previousMateria.savedRemaining = remaining;
+    previousMateria.savedTotalForMode = totalForMode;
+    persistUser();
+  }
+
   selectedMateriaId = id;
-  renderCurrentSubjectChip();
   toggleMateriaPicker();
+
+  const newMateria = currentUserData.materias.find(m => m.id === id);
+  if(mode === 'focus' && newMateria && newMateria.savedRemaining > 0){
+    openResumeMateriaModal(newMateria);
+  } else {
+    if(mode === 'focus') setMode('focus');
+    renderCurrentSubjectChip();
+  }
+}
+
+/* ---------------- Retomar el tiempo guardado de una materia ---------------- */
+let materiaResumeTarget = null;
+
+function openResumeMateriaModal(materia){
+  materiaResumeTarget = materia;
+  const m = Math.floor(materia.savedRemaining / 60).toString().padStart(2,'0');
+  const s = Math.floor(materia.savedRemaining % 60).toString().padStart(2,'0');
+  document.getElementById('materiaResumeText').innerHTML =
+    `Tenías <strong>${m}:${s}</strong> guardados en <strong>${escapeHtml(materia.nombre)}</strong> de una sesión anterior. ¿Qué quieres hacer?`;
+  document.getElementById('modalMateriaResumeOverlay').classList.remove('hidden');
+}
+
+function resolveMateriaResume(choice){
+  const materia = materiaResumeTarget;
+  document.getElementById('modalMateriaResumeOverlay').classList.add('hidden');
+  if(!materia) return;
+
+  if(choice === 'continue'){
+    mode = 'focus';
+    remaining = materia.savedRemaining;
+    totalForMode = materia.savedTotalForMode || remaining;
+    running = false;
+    timerEndAt = null;
+    document.getElementById('btnStartPause').textContent = 'Iniciar';
+    document.getElementById('modeLabel').textContent = 'Enfoque';
+    document.getElementById('lampTimer').classList.remove('is-break','is-longbreak');
+    document.getElementById('ringFg').classList.remove('live');
+    updateTimerDisplay();
+    updateTimerControlsVisibility();
+    toast(`Retomando ${materia.nombre} donde lo dejaste.`);
+  } else {
+    setMode('focus');
+    toast(`Empezamos ${materia.nombre} desde cero.`);
+  }
+  delete materia.savedRemaining;
+  delete materia.savedTotalForMode;
+  persistUser();
+  renderCurrentSubjectChip();
+  renderMateriasList();
+  materiaResumeTarget = null;
 }
 
 function renderCurrentSubjectChip(){
@@ -1793,7 +1899,7 @@ function openStopModal(){
       `Llevas <strong>${elapsedMin} min</strong>${materiaTxt} y te quedan <strong>${m}:${sec}</strong>. ¿Qué quieres hacer?`;
     actionsHtml = `
       <button class="btn btn-secondary" onclick="stopSessionAction('advance')">Terminar y pasar a descanso</button>
-      <button class="btn btn-secondary" onclick="stopSessionAction('switch')">Cambiar de materia (conservo el tiempo)</button>
+      <button class="btn btn-secondary" onclick="stopSessionAction('switch')">Cambiar de materia (el tiempo se queda guardado en esta)</button>
       <button class="btn btn-secondary" onclick="stopSessionAction('restart')">Empezar de cero</button>
     `;
   } else {
