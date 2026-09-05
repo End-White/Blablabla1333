@@ -240,13 +240,14 @@
   /* ---------- Main content ---------- */
   main{
     flex:1;
-    padding: 8px 20px 14px;
+    padding: 20px 20px 14px;
     display:flex;
     flex-direction:column;
     gap:16px;
   }
 
-  /* Today card */
+  /* Tarjeta "Actividad actual" — reservada para cuando conectemos las Salas.
+     Se reutiliza el mismo patrón visual que tenía "¿Qué tienes para hoy?". */
   .today-card{
     background: var(--surface-2);
     border:1px solid var(--border);
@@ -938,17 +939,6 @@
   </header>
 
   <main>
-    <button class="today-card" id="todayCard" onclick="onTodayCardClick()">
-      <div>
-        <div class="today-text">¿Qué tienes para hoy?</div>
-        <div class="today-sub" id="todaySub">Sin materias registradas aún</div>
-      </div>
-      <div class="today-right">
-        <span class="pending-dot" id="pendingDot"></span>
-        <span class="today-arrow">›</span>
-      </div>
-    </button>
-
     <section class="timer-section">
       <div class="lamp-timer" id="lampTimer">
         <svg viewBox="0 0 220 220">
@@ -1445,7 +1435,6 @@ function resolveResume(choice){
 }
 
 function renderAll(){
-  renderPendingDot();
   renderLastSession();
   renderMateriasList();
   renderHistoryList();
@@ -1467,7 +1456,6 @@ function handleAddMateria(e){
   newMateriaColor = MATERIA_PALETTE[currentUserData.materias.length % MATERIA_PALETTE.length];
   document.getElementById('newMateriaColorBtn').style.background = newMateriaColor;
   renderMateriasList();
-  renderPendingDot();
   checkAchievements();
   toast('Materia agregada.');
   return false;
@@ -1481,7 +1469,6 @@ function deleteMateria(id){
   }
   persistUser();
   renderMateriasList();
-  renderPendingDot();
 }
 
 function renderMateriasList(){
@@ -1643,43 +1630,6 @@ function renderCurrentSubjectChip(){
   chip.classList.add('show');
 }
 
-/* ---------------- Tarjeta "¿Qué tienes para hoy?" ---------------- */
-function computePendingToday(){
-  const todayStr = new Date().toDateString();
-  const studiedIds = new Set(
-    currentUserData.historial
-      .filter(h => new Date(h.fecha).toDateString() === todayStr)
-      .map(h => h.materiaId)
-  );
-  return currentUserData.materias.filter(m => !studiedIds.has(m.id));
-}
-
-function renderPendingDot(){
-  const pending = computePendingToday();
-  const dot = document.getElementById('pendingDot');
-  const sub = document.getElementById('todaySub');
-  if(currentUserData.materias.length === 0){
-    dot.classList.remove('blink');
-    dot.style.visibility = 'hidden';
-    sub.textContent = 'Agrega materias para ver tus pendientes de hoy';
-    return;
-  }
-  dot.style.visibility = 'visible';
-  if(pending.length > 0){
-    dot.classList.add('blink');
-    sub.textContent = pending.length + ' materia(s) sin estudiar hoy';
-  } else {
-    dot.classList.remove('blink');
-    sub.textContent = 'Ya estudiaste todas tus materias hoy 🎉';
-  }
-}
-
-function onTodayCardClick(){
-  // Aquí, más adelante, se redirigirá a una página dedicada con el detalle
-  // de tareas y pendientes del día. Por ahora dejamos un aviso rápido.
-  toast('Próximamente: aquí verás el detalle de tus pendientes de hoy.');
-}
-
 /* ---------------- Temporizador ---------------- */
 let timerEndAt = null;
 let rafId = null;
@@ -1832,7 +1782,6 @@ function onTimerComplete(){
 
     persistUser();
     renderLastSession();
-    renderPendingDot();
     renderHistoryList();
     renderMateriasList();
     renderAchievements();
@@ -1875,7 +1824,6 @@ function logPartialSession(minutos){
   }
   persistUser();
   renderLastSession();
-  renderPendingDot();
   renderHistoryList();
   renderMateriasList();
   renderAchievements();
@@ -2003,7 +1951,6 @@ function deleteHistoryEntry(id){
   persistUser();
   renderHistoryList();
   renderLastSession();
-  renderPendingDot();
   renderMateriasList();
   toast('Sesión eliminada del registro.');
 }
