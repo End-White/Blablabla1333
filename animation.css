@@ -1,0 +1,313 @@
+# Animaciones de Enfoque — código vigente
+
+Este documento reúne el código **actual** (vigente en el archivo `enfoque.html`) de cada animación que hemos construido, con una descripción breve de qué hace y dónde vive. Todo es CSS/JS puro — funciona igual sin importar si el HTML está en tu computador o publicado en GitHub Pages, porque no depende de ningún servidor.
+
+Cada bloque trae el selector/función exacto para que lo puedas ubicar o pegar directamente si estás separando el código en archivos.
+
+---
+
+## 1. Punto verde parpadeante ("¿Qué tienes para hoy?")
+
+Avisa si hay materias sin estudiar hoy.
+
+```css
+.pending-dot{
+  width:10px; height:10px;
+  border-radius:50%;
+  background: var(--success);
+  box-shadow: 0 0 0 0 rgba(var(--success-rgb), 0.7);
+}
+.pending-dot.blink{ animation: pulse-dot 1.6s ease-in-out infinite; }
+@keyframes pulse-dot{
+  0%, 100% { opacity:1; box-shadow: 0 0 0 0 rgba(var(--success-rgb), 0.65); }
+  50% { opacity:0.45; box-shadow: 0 0 0 7px rgba(var(--success-rgb), 0); }
+}
+```
+
+---
+
+## 2. Anillo del cronómetro (barrido continuo + resplandor)
+
+El anillo se vacía en tiempo real (no salta cada segundo) usando `requestAnimationFrame`, y el resplandor ya no se corta en un cuadrado (`overflow: visible` en el `<svg>`).
+
+```css
+.lamp-timer{ position:relative; width:230px; height:230px; margin: 0 auto; }
+.lamp-timer svg{ width:100%; height:100%; transform: rotate(-90deg); overflow: visible; }
+.lamp-timer .ring-bg{ fill:none; stroke: var(--border); stroke-width:10; }
+.lamp-timer .ring-fg{
+  fill:none; stroke: var(--accent); stroke-width:10; stroke-linecap:round;
+  transition: stroke-dashoffset .35s ease, stroke .3s ease;
+  filter: drop-shadow(0 0 8px rgba(var(--accent-rgb),0.6));
+}
+.lamp-timer .ring-fg.live{ transition: stroke .3s ease; }
+.lamp-timer.is-break .ring-fg{ stroke: var(--text-muted); filter:none; }
+.lamp-timer.is-longbreak .ring-fg{ stroke: var(--success); filter: drop-shadow(0 0 8px rgba(var(--success-rgb),0.45)); }
+```
+
+```javascript
+function updateRingToFraction(progress){
+  const r = 98;
+  const circumference = 2 * Math.PI * r;
+  const ring = document.getElementById('ringFg');
+  ring.style.strokeDasharray = `${circumference}`;
+  ring.style.strokeDashoffset = `${circumference * (1 - progress)}`;
+}
+
+// Corre en cada cuadro mientras el cronómetro está activo (running=true)
+function animateRing(){
+  if(!running || !timerEndAt) return;
+  const msLeft = Math.max(0, timerEndAt - Date.now());
+  const fraction = totalForMode > 0 ? (msLeft / (totalForMode * 1000)) : 0;
+  updateRingToFraction(fraction);
+  rafId = requestAnimationFrame(animateRing);
+}
+```
+
+Se activa así al presionar "Iniciar" (agrega la clase `.live` para que la transición no compita con el `requestAnimationFrame`):
+
+```javascript
+document.getElementById('ringFg').classList.add('live');
+rafId = requestAnimationFrame(animateRing);
+```
+
+---
+
+## 3. Botón "+" (estilo iOS: resorte al abrir/cerrar)
+
+Gira a "X", con una curva de resorte (`cubic-bezier` con rebote) y una pequeña reducción al presionar.
+
+```css
+.fab{
+  width:68px; height:68px;
+  border-radius:50%;
+  border:none;
+  background: var(--accent);
+  color:#14151A;
+  font-size:29px;
+  font-weight:600;
+  box-shadow: 0 10px 26px rgba(var(--accent-rgb),0.45);
+  display:flex; align-items:center; justify-content:center;
+  line-height:0;
+  transition: transform .45s cubic-bezier(0.34, 1.56, 0.64, 1), box-shadow .3s ease;
+}
+.fab:hover{ filter:brightness(1.05); }
+.fab:active{ transform: scale(0.88); transition: transform .12s ease; }
+.fab.open{ transform: rotate(45deg) scale(1.04); box-shadow: 0 6px 18px rgba(var(--accent-rgb),0.3); }
+.fab.open:active{ transform: rotate(45deg) scale(0.92); }
+```
+
+---
+
+## 4. Fondo oscuro (scrim) + panel desplegable de materias
+
+Aparece detrás del panel de materias cuando se abre con el botón "+", y se cierra solo al tocar afuera.
+
+```css
+.picker-scrim{
+  position:fixed; inset:0;
+  background: rgba(6,7,11,0.001);
+  z-index: 35;
+  opacity:0;
+  pointer-events:none;
+  transition: opacity .35s ease;
+}
+.picker-scrim.open{ opacity:1; pointer-events:auto; background: rgba(6,7,11,0.28); }
+
+.materia-picker{
+  position:absolute;
+  bottom: 82px;
+  left:50%;
+  width: 250px;
+  max-height: 260px;
+  overflow-y:auto;
+  background: var(--surface-2);
+  border:1px solid var(--border);
+  border-radius: var(--radius-md);
+  box-shadow: var(--shadow-soft);
+  padding:10px;
+  z-index: 40;
+  transform-origin: 50% 100%;
+  transform: translateX(-50%) translateY(10px) scale(0.85);
+  opacity:0;
+  visibility:hidden;
+  pointer-events:none;
+  transition: transform .4s cubic-bezier(0.34, 1.56, 0.64, 1), opacity .25s ease, visibility 0s linear .4s;
+}
+.materia-picker.open{
+  transform: translateX(-50%) translateY(0) scale(1);
+  opacity:1;
+  visibility:visible;
+  pointer-events:auto;
+  transition: transform .45s cubic-bezier(0.34, 1.56, 0.64, 1), opacity .3s ease;
+}
+```
+
+---
+
+## 5. Botones "Reiniciar" / "Detener": aparecen solo con sesión activa
+
+Cuando el bloque está intacto (nunca iniciado) solo se ve "Iniciar" en el centro. Al iniciar una sesión (o si queda a medias), los botones laterales "crecen" desde la nada con resorte.
+
+```css
+.timer-controls{
+  display:flex;
+  align-items:center;
+  justify-content:center;
+  gap:0;
+  margin-top:18px;
+  width:100%;
+}
+.timer-controls .btn{ min-width:96px; }
+.timer-controls .side-btn{
+  max-width:0;
+  opacity:0;
+  transform: scale(0.4);
+  overflow:hidden;
+  padding-left:0; padding-right:0;
+  border-width:0;
+  margin:0;
+  white-space:nowrap;
+  pointer-events:none;
+  min-width:0;
+  transition: max-width .45s cubic-bezier(0.34,1.56,0.64,1), opacity .3s ease,
+              transform .45s cubic-bezier(0.34,1.56,0.64,1), margin .45s ease, padding .35s ease;
+}
+.timer-controls.active .side-btn{
+  max-width:140px;
+  opacity:1;
+  transform: scale(1);
+  margin: 0 7px;
+  padding: 13px 16px;
+  border-width:1px;
+  pointer-events:auto;
+}
+```
+
+```javascript
+// Se llama cada vez que cambia el estado del cronómetro (iniciar, pausar, reiniciar, etc.)
+function updateTimerControlsVisibility(){
+  const active = running || remaining < totalForMode;
+  document.getElementById('timerControls').classList.toggle('active', active);
+}
+```
+
+---
+
+## 6. Chip de "materia activa" (aparece con fundido)
+
+```css
+.current-subject{
+  margin-top:16px;
+  display:inline-flex;
+  align-items:center;
+  gap:8px;
+  background: var(--surface-2);
+  border:1px solid var(--border);
+  padding: 8px 16px;
+  border-radius: 999px;
+  font-size:13px;
+  font-weight:600;
+  max-width: 100%;
+  opacity:0;
+  transform: translateY(6px);
+  transition: opacity .3s ease, transform .3s ease;
+}
+.current-subject.show{ opacity:1; transform:none; }
+```
+
+---
+
+## 7. Interruptor estilo iOS (ciclos con descanso largo)
+
+La perilla se desliza con rebote; el panel de opciones (sesiones antes del descanso largo, duración) se despliega suavemente debajo.
+
+```css
+.ios-switch{
+  flex:none;
+  width:50px; height:30px;
+  border-radius:999px;
+  border:none;
+  background: var(--border);
+  position:relative;
+  padding:0;
+  transition: background .3s ease;
+}
+.ios-switch .knob{
+  position:absolute;
+  top:3px; left:3px;
+  width:24px; height:24px;
+  border-radius:50%;
+  background:#fff;
+  box-shadow: 0 2px 6px rgba(0,0,0,0.25);
+  transition: transform .4s cubic-bezier(0.34, 1.56, 0.64, 1);
+}
+.ios-switch.on{ background: var(--accent); }
+.ios-switch.on .knob{ transform: translateX(20px); }
+
+.cycles-extra{
+  display:grid;
+  grid-template-rows: 0fr;
+  transition: grid-template-rows .35s ease;
+  overflow:hidden;
+  margin-top: 2px;
+}
+.cycles-extra.open{ grid-template-rows: 1fr; margin-top:14px; }
+.cycles-extra > div{ overflow:hidden; }
+```
+
+```javascript
+function toggleCyclesSwitch(){
+  previewCyclesEnabled = !previewCyclesEnabled;
+  applyCyclesSwitchUI();
+}
+function applyCyclesSwitchUI(){
+  document.getElementById('cyclesToggle').classList.toggle('on', previewCyclesEnabled);
+  document.getElementById('cyclesExtra').classList.toggle('open', previewCyclesEnabled);
+}
+```
+
+---
+
+## 8. Desbloqueo de un logro (rebote + brillo + ícono a color)
+
+Cuando se desbloquea un logro nuevo, la tarjeta hace un pequeño rebote con destello del color de acento, y el ícono pasa de blanco y negro a color con un giro.
+
+```css
+.achv .achv-ico{
+  width:42px; height:42px; border-radius:50%;
+  background: var(--bg);
+  display:flex; align-items:center; justify-content:center;
+  font-size:19px; flex:none;
+  filter: grayscale(1);
+  transition: filter .3s ease, background .3s ease, transform .3s ease;
+}
+.achv.unlocked .achv-ico{
+  background: var(--accent);
+  filter:none;
+  box-shadow: 0 4px 14px rgba(var(--accent-rgb),0.5);
+}
+
+.achv.just-unlocked{ animation: achv-pop .8s ease; }
+@keyframes achv-pop{
+  0%{ transform: scale(0.92); box-shadow: 0 0 0 0 rgba(var(--accent-rgb),0); }
+  35%{ transform: scale(1.035); box-shadow: 0 0 0 10px rgba(var(--accent-rgb),0.18); }
+  70%{ transform: scale(0.995); box-shadow: 0 0 0 3px rgba(var(--accent-rgb),0.1); }
+  100%{ transform: scale(1); box-shadow: 0 0 0 0 rgba(var(--accent-rgb),0); }
+}
+.achv.just-unlocked .achv-ico{ animation: achv-ico-spin .8s ease; }
+@keyframes achv-ico-spin{
+  0%{ transform: scale(0.7) rotate(-15deg); }
+  55%{ transform: scale(1.18) rotate(8deg); }
+  100%{ transform: scale(1) rotate(0deg); }
+}
+```
+
+La clase `.just-unlocked` se agrega una sola vez (la próxima vez que se abre el modal de Logros después de conseguirlo) desde `renderAchievements()` en el JS, comparando contra la lista de logros ya desbloqueados guardada en `localStorage`.
+
+---
+
+## Notas para cuando lo subas al repositorio
+
+- Todo este código ya está incluido dentro de `enfoque.html` (en las etiquetas `<style>` y `<script>`); este documento es solo una referencia/organización, no un archivo aparte que haya que enlazar.
+- No incluí nada de lo que cambiamos y quedó obsoleto (por ejemplo: el reloj viejo con `overflow` recortado, el input de color nativo, o el layout anterior de "Reiniciar" siempre visible) — si tienes commits viejos con esas versiones, no hace falta rescatarlos.
+- Todas dependen de las variables de color CSS (`--accent`, `--accent-rgb`, etc.) definidas en `:root` — si copias un bloque suelto a otro proyecto, asegúrate de llevar también esas variables.
