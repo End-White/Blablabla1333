@@ -8,7 +8,7 @@
 <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
 <link href="https://fonts.googleapis.com/css2?family=Fraunces:opsz,wght@9..144,500;9..144,600;9..144,700&family=Sora:wght@400;500;600;700&family=JetBrains+Mono:wght@500;600;700&display=swap" rel="stylesheet">
 <!-- Cliente de Supabase (Auth + Base de datos en la nube) -->
-<script src="https://qpriprtrswpmkyvwzfoz.supabase.co"></script>
+<script src="https://cdn.jsdelivr.net/npm/@supabase/supabase-js@2/dist/umd/supabase.min.js"></script>
 <style>
   :root{
     --bg: #12141C;
@@ -1407,8 +1407,8 @@
    La anon key es pública y segura de exponer en el frontend siempre
    y cuando tengas Row Level Security activado (así viene en
    schema_supabase.sql). NUNCA expongas la "service_role" key aquí. */
-const SUPABASE_URL = 'https://TU-PROYECTO.supabase.co';
-const SUPABASE_ANON_KEY = 'TU-ANON-KEY-PUBLICA';
+const SUPABASE_URL = 'https://qpriprtrswpmkyvwzfoz.supabase.co';
+const SUPABASE_ANON_KEY = 'sb_publishable_kA-lPAYYx70_K9furjp-yw_YB4St2Ee';
 
 const supabaseClient = window.supabase.createClient(SUPABASE_URL, SUPABASE_ANON_KEY);
 
