@@ -989,8 +989,8 @@
     <!-- Login form -->
     <form id="formLogin" onsubmit="return handleLogin(event)">
       <div class="field">
-        <label for="loginUser">Correo</label>
-        <input type="email" id="loginUser" autocomplete="email" required>
+        <label for="loginUser">Usuario o correo</label>
+        <input type="text" id="loginUser" autocomplete="username" required>
       </div>
       <div class="field">
         <label for="loginPass">Contraseña</label>
@@ -998,13 +998,14 @@
       </div>
       <p class="auth-error" id="loginError"></p>
       <button type="submit" class="btn btn-primary">Entrar</button>
+      <button type="button" class="btn btn-ghost" style="margin-top:8px" onclick="openRecoveryModal()">¿Olvidaste tu contraseña?</button>
     </form>
 
     <!-- Register form -->
     <form id="formRegister" class="hidden" onsubmit="return handleRegister(event)">
       <div class="field">
-        <label for="regName">¿Cómo quieres que te llamemos?</label>
-        <input type="text" id="regName" placeholder="Ej. Sofía" required>
+        <label for="regUsername">Usuario</label>
+        <input type="text" id="regUsername" autocomplete="username" placeholder="Ej. sofia_23" pattern="[a-zA-Z0-9_.]{3,20}" title="3 a 20 caracteres: letras, números, punto o guión bajo, sin espacios" required>
       </div>
       <div class="field">
         <label for="regUser">Correo</label>
@@ -1018,7 +1019,37 @@
       <button type="submit" class="btn btn-primary">Crear cuenta</button>
     </form>
 
-    <p class="auth-hint">Tus datos se guardan de forma segura en la nube. Puedes entrar desde cualquier dispositivo con tu correo y contraseña.</p>
+    <p class="auth-hint">Tus datos se guardan de forma segura en la nube. Puedes entrar desde cualquier dispositivo con tu usuario o correo y tu contraseña.</p>
+  </div>
+</div>
+
+<!-- ============ MODAL: RECUPERAR CONTRASEÑA ============ -->
+<div class="modal-overlay hidden" id="modalRecoveryOverlay" onclick="closeOnOverlay(event,'modalRecovery')">
+  <div class="modal">
+    <div class="modal-head">
+      <h2>Recuperar contraseña</h2>
+      <button class="modal-close" onclick="closeModal('modalRecovery')">✕</button>
+    </div>
+
+    <form id="formRecoveryRequest" onsubmit="return handleRecoveryRequest(event)">
+      <div class="field">
+        <label for="recoveryHandle">Tu usuario o correo</label>
+        <input type="text" id="recoveryHandle" autocomplete="username" required>
+      </div>
+      <p class="auth-error" id="recoveryError"></p>
+      <button type="submit" class="btn btn-primary">Enviar enlace de recuperación</button>
+    </form>
+
+    <!-- Se muestra automáticamente cuando el usuario vuelve desde el enlace del correo -->
+    <form id="formSetNewPassword" class="hidden" onsubmit="return handleSetNewPassword(event)">
+      <p style="font-size:13px;color:var(--text-muted);margin-top:0">Escribe tu nueva contraseña.</p>
+      <div class="field">
+        <label for="newPassword">Nueva contraseña</label>
+        <input type="password" id="newPassword" autocomplete="new-password" required minlength="6">
+      </div>
+      <p class="auth-error" id="newPasswordError"></p>
+      <button type="submit" class="btn btn-primary">Guardar nueva contraseña</button>
+    </form>
   </div>
 </div>
 
@@ -1551,9 +1582,19 @@ function switchAuthTab(which){
   document.getElementById('formRegister').classList.toggle('hidden', which!=='register');
 }
 
+async function resolveEmailFromHandle(handle){
+  if(handle.includes('@')) return handle; // ya es un correo
+  const { data, error } = await supabaseClient.rpc('email_for_username', { p_username: handle });
+  if(error){
+    console.error('Error resolviendo usuario:', error);
+    return null;
+  }
+  return data || null;
+}
+
 async function handleLogin(e){
   e.preventDefault();
-  const email = document.getElementById('loginUser').value.trim();
+  const handle = document.getElementById('loginUser').value.trim();
   const pass = document.getElementById('loginPass').value;
   const errEl = document.getElementById('loginError');
   const btn = e.target.querySelector('button[type="submit"]');
@@ -1562,13 +1603,21 @@ async function handleLogin(e){
   btn.disabled = true;
   btn.textContent = 'Entrando…';
 
+  const email = await resolveEmailFromHandle(handle);
+  if(!email){
+    btn.disabled = false;
+    btn.textContent = 'Entrar';
+    errEl.textContent = 'Usuario o contraseña incorrectos.';
+    return false;
+  }
+
   const { data, error } = await supabaseClient.auth.signInWithPassword({ email, password: pass });
 
   btn.disabled = false;
   btn.textContent = 'Entrar';
 
   if(error){
-    errEl.textContent = 'Correo o contraseña incorrectos.';
+    errEl.textContent = 'Usuario/correo o contraseña incorrectos.';
     return false;
   }
 
@@ -1582,29 +1631,53 @@ async function handleLogin(e){
 
 async function handleRegister(e){
   e.preventDefault();
-  const name = document.getElementById('regName').value.trim();
+  const username = document.getElementById('regUsername').value.trim();
   const email = document.getElementById('regUser').value.trim();
   const pass = document.getElementById('regPass').value;
   const errEl = document.getElementById('registerError');
   const btn = e.target.querySelector('button[type="submit"]');
 
   errEl.textContent = '';
+
+  if(!/^[a-zA-Z0-9_.]{3,20}$/.test(username)){
+    errEl.textContent = 'El usuario debe tener 3-20 caracteres: letras, números, punto o guión bajo.';
+    return false;
+  }
+
   btn.disabled = true;
   btn.textContent = 'Creando…';
+
+  const { data: isAvailable, error: availError } = await supabaseClient.rpc('username_available', { p_username: username });
+  if(availError){
+    btn.disabled = false;
+    btn.textContent = 'Crear cuenta';
+    errEl.textContent = 'No se pudo verificar el usuario. Intenta de nuevo.';
+    return false;
+  }
+  if(!isAvailable){
+    btn.disabled = false;
+    btn.textContent = 'Crear cuenta';
+    errEl.textContent = 'Ese nombre de usuario ya existe.';
+    return false;
+  }
 
   const { data, error } = await supabaseClient.auth.signUp({
     email,
     password: pass,
-    options: { data: { full_name: name || email.split('@')[0] } }
+    options: { data: { username, full_name: username } }
   });
 
   btn.disabled = false;
   btn.textContent = 'Crear cuenta';
 
   if(error){
-    errEl.textContent = error.message.includes('already registered')
-      ? 'Ese correo ya tiene una cuenta.'
-      : 'No se pudo crear la cuenta: ' + error.message;
+    if(error.message.toLowerCase().includes('rate limit')){
+      errEl.textContent = 'Se enviaron demasiados correos en poco tiempo. Espera unos minutos e inténtalo de nuevo.';
+    } else if(error.message.toLowerCase().includes('already registered')){
+      errEl.textContent = 'Ese correo ya tiene una cuenta.';
+    } else {
+      errEl.textContent = 'No se pudo crear la cuenta: ' + error.message;
+    }
     return false;
   }
 
@@ -1616,9 +1689,8 @@ async function handleRegister(e){
   }
 
   const userId = data.user.id;
-  const newUser = defaultUserData(name || email.split('@')[0]);
-  await supabaseClient.from('user_data').upsert({ user_id: userId, display_name: newUser.name, data: newUser });
-  bootSession(userId, newUser);
+  const userData = await fetchUserData(userId, username);
+  bootSession(userId, userData);
   return false;
 }
 
@@ -2711,6 +2783,87 @@ function closeModal(id){
 function closeOnOverlay(e, id){
   if(e.target.id === id + 'Overlay') closeModal(id);
 }
+
+/* ---------------- Recuperación de contraseña ---------------- */
+function openRecoveryModal(){
+  document.getElementById('recoveryError').textContent = '';
+  document.getElementById('recoveryHandle').value = '';
+  document.getElementById('formRecoveryRequest').classList.remove('hidden');
+  document.getElementById('formSetNewPassword').classList.add('hidden');
+  document.getElementById('modalRecoveryOverlay').classList.remove('hidden');
+}
+
+async function handleRecoveryRequest(e){
+  e.preventDefault();
+  const handle = document.getElementById('recoveryHandle').value.trim();
+  const errEl = document.getElementById('recoveryError');
+  const btn = e.target.querySelector('button[type="submit"]');
+
+  errEl.textContent = '';
+  btn.disabled = true;
+  btn.textContent = 'Enviando…';
+
+  const email = await resolveEmailFromHandle(handle);
+
+  if(email){
+    const { error } = await supabaseClient.auth.resetPasswordForEmail(email, {
+      redirectTo: window.location.href.split('#')[0]
+    });
+    if(error && error.message.toLowerCase().includes('rate limit')){
+      errEl.textContent = 'Se enviaron demasiados correos en poco tiempo. Espera unos minutos e inténtalo de nuevo.';
+      btn.disabled = false;
+      btn.textContent = 'Enviar enlace de recuperación';
+      return false;
+    }
+  }
+
+  // Por seguridad mostramos el mismo mensaje exista o no esa cuenta,
+  // para no revelar qué usuarios/correos están registrados.
+  btn.disabled = false;
+  btn.textContent = 'Enviar enlace de recuperación';
+  toast('Si esa cuenta existe, te llegará un correo con el enlace para restablecer tu contraseña.');
+  closeModal('modalRecovery');
+  return false;
+}
+
+async function handleSetNewPassword(e){
+  e.preventDefault();
+  const newPass = document.getElementById('newPassword').value;
+  const errEl = document.getElementById('newPasswordError');
+  const btn = e.target.querySelector('button[type="submit"]');
+
+  errEl.textContent = '';
+  btn.disabled = true;
+  btn.textContent = 'Guardando…';
+
+  const { error } = await supabaseClient.auth.updateUser({ password: newPass });
+
+  btn.disabled = false;
+  btn.textContent = 'Guardar nueva contraseña';
+
+  if(error){
+    errEl.textContent = 'No se pudo actualizar la contraseña: ' + error.message;
+    return false;
+  }
+
+  closeModal('modalRecovery');
+  toast('Contraseña actualizada. Ya puedes usarla para entrar.');
+  return false;
+}
+
+/* Cuando el usuario vuelve del enlace de recuperación que le llegó por
+   correo, Supabase dispara este evento: abrimos el modal directo en la
+   vista de "escribir nueva contraseña". */
+supabaseClient.auth.onAuthStateChange((event) => {
+  if(event === 'PASSWORD_RECOVERY'){
+    document.getElementById('formRecoveryRequest').classList.add('hidden');
+    document.getElementById('formSetNewPassword').classList.remove('hidden');
+    document.getElementById('newPasswordError').textContent = '';
+    document.getElementById('newPassword').value = '';
+    document.getElementById('modalRecoveryOverlay').classList.remove('hidden');
+  }
+});
+
 document.addEventListener('click', function(e){
   const picker = document.getElementById('materiaPicker');
   const fab = document.getElementById('fabBtn');
