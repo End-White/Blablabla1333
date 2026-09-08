@@ -3,7 +3,7 @@
 <head>
 <meta charset="UTF-8">
 <meta name="viewport" content="width=device-width, initial-scale=1.0, viewport-fit=cover">
-<title>Enfoque — tu Pomodoro de estudio</title>
+<title>PomoToe — tu Pomodoro de estudio</title>
 <link rel="preconnect" href="https://fonts.googleapis.com">
 <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
 <link href="https://fonts.googleapis.com/css2?family=Fraunces:opsz,wght@9..144,500;9..144,600;9..144,700&family=Sora:wght@400;500;600;700&family=JetBrains+Mono:wght@500;600;700&display=swap" rel="stylesheet">
@@ -113,6 +113,14 @@
     color: var(--text-muted);
     margin:0;
     font-size: 14px;
+  }
+  .auth-brand .dev-credit{
+    font-size: 11px;
+    color: var(--text-muted);
+    opacity: 0.7;
+    margin-top: 6px;
+    letter-spacing: 0.04em;
+    text-transform: uppercase;
   }
   .auth-card{
     background: var(--surface-2);
@@ -234,8 +242,10 @@
     color: var(--text-muted);
     display:flex; align-items:center; justify-content:center;
     font-size:16px;
+    transition: background .2s ease, color .2s ease, transform .15s ease;
   }
   .icon-btn:hover{ background: var(--surface-hover); color: var(--text); }
+  .icon-btn:active{ transform: scale(0.88); }
 
   /* ---------- Main content ---------- */
   main{
@@ -290,6 +300,35 @@
     flex-direction:column;
     align-items:center;
     padding: 10px 0 4px;
+    position:relative;
+  }
+  .salas-btn{
+    position:absolute;
+    right: 2px;
+    top: 125px;
+    transform: translateY(-50%);
+    display:flex; flex-direction:column; align-items:center; gap:4px;
+    background: var(--surface-2);
+    border:1px solid var(--border);
+    border-radius: 16px;
+    padding: 12px 9px;
+    color: var(--text-muted);
+    font-size:10px;
+    font-weight:700;
+    text-transform:uppercase;
+    letter-spacing:0.03em;
+    transition: background .2s ease, border-color .2s ease, color .2s ease, transform .2s ease;
+  }
+  .salas-btn:hover{ background: var(--surface-hover); border-color: var(--accent); color: var(--text); }
+  .salas-btn:active{ transform: translateY(-50%) scale(0.94); }
+  .salas-btn .salas-ico{ font-size:18px; }
+  .salas-btn .salas-soon{
+    position:absolute; top:-7px; right:-7px;
+    background: var(--accent); color:#14151A;
+    font-size:8px; font-weight:800;
+    padding:2px 6px; border-radius:999px;
+    white-space:nowrap;
+    box-shadow: 0 2px 6px rgba(var(--accent-rgb),0.4);
   }
   .lamp-timer{ position:relative; width:230px; height:230px; margin: 0 auto; }
   .lamp-timer svg{ width:100%; height:100%; transform: rotate(-90deg); overflow: visible; }
@@ -442,9 +481,12 @@
     font-weight:600;
     font-size:12.5px;
     text-align:center;
+    transition: background .2s ease, transform .15s ease;
   }
   .nav-square:hover{ background: var(--surface-hover); }
-  .nav-square .ico{ display:block; font-size:16px; margin-bottom:4px; }
+  .nav-square:active{ transform: scale(0.95); }
+  .nav-square .ico{ display:block; font-size:16px; margin-bottom:4px; transition: transform .2s ease; }
+  .nav-square:active .ico{ transform: scale(1.15); }
 
   .fab-wrap{ position:relative; flex:none; }
   .fab{
@@ -531,6 +573,39 @@
     border-radius:999px;
     flex:none;
   }
+  .materia-schedule-badge{
+    margin-left:auto;
+    font-size:10px;
+    font-weight:700;
+    text-transform:uppercase;
+    letter-spacing:0.04em;
+    color:#14151A;
+    background: var(--accent);
+    padding: 3px 8px;
+    border-radius:999px;
+    flex:none;
+  }
+  .horario-day-label{
+    font-size:11px;
+    text-transform:uppercase;
+    letter-spacing:0.08em;
+    color: var(--text-muted);
+    font-weight:700;
+    margin: 14px 0 6px;
+  }
+  .horario-day-label:first-child{ margin-top:0; }
+  .horario-block{
+    display:flex; align-items:center; gap:10px;
+    padding:10px 12px;
+    border:1px solid var(--border);
+    border-radius: var(--radius-sm);
+    margin-bottom:8px;
+    animation: row-fade-in .35s ease;
+  }
+  .horario-block .swatch{ width:10px; height:10px; border-radius:50%; flex:none; }
+  .horario-block .horario-time{ font-family: var(--font-mono); font-size:12px; color: var(--text-muted); flex:none; }
+  .horario-block .horario-materia{ font-weight:600; font-size:13.5px; flex:1; }
+  .horario-block .del{ background:none; border:none; color: var(--danger); font-size:12px; font-weight:700; flex:none; }
   .materia-empty{
     padding: 10px 8px;
     font-size:13px;
@@ -556,6 +631,20 @@
     align-items:flex-end;
     justify-content:center;
     z-index: 100;
+    opacity:1;
+    transition: opacity .3s ease;
+  }
+  /* Anima TODOS los modales al abrir/cerrar (sobreescribe el display:none genérico
+     de .hidden solo para overlays de modal, para poder animar la transición). */
+  .modal-overlay.hidden{
+    display:flex !important;
+    opacity:0;
+    visibility:hidden;
+    pointer-events:none;
+    transition: opacity .25s ease, visibility 0s linear .25s;
+  }
+  .modal-overlay.hidden .modal{
+    transform: translateY(28px) scale(0.96);
   }
   @media (min-width: 560px){
     .modal-overlay{ align-items:center; }
@@ -569,6 +658,8 @@
     overflow-y:auto;
     border-radius: 22px 22px 0 0;
     padding: 22px 22px 28px;
+    transform: translateY(0) scale(1);
+    transition: transform .4s cubic-bezier(0.34, 1.56, 0.64, 1);
   }
   @media (min-width: 560px){
     .modal{ border-radius: var(--radius-lg); max-height: 78vh; }
@@ -598,6 +689,11 @@
     border:1px solid var(--border);
     border-radius: var(--radius-sm);
     margin-bottom:8px;
+    animation: row-fade-in .35s ease;
+  }
+  @keyframes row-fade-in{
+    from{ opacity:0; transform: translateY(6px); }
+    to{ opacity:1; transform: translateY(0); }
   }
   .materia-row .swatch{
     width:14px; height:14px; border-radius:50%; flex:none;
@@ -761,6 +857,7 @@
     display:flex; align-items:center; justify-content:space-between;
     padding: 12px 4px;
     border-bottom: 1px solid var(--border);
+    animation: row-fade-in .35s ease;
   }
   .history-item:last-child{ border-bottom:none; }
   .history-item .h-left .h-materia{ font-weight:600; font-size:14px; }
@@ -876,8 +973,9 @@
 <div id="authScreen">
   <div class="auth-brand">
     <div class="lamp-mark"></div>
-    <h1>Enfoque</h1>
+    <h1>PomoToe</h1>
     <p>Tu técnica Pomodoro para estudiar por materias</p>
+    <p class="dev-credit">Un proyecto de 7Dragons</p>
   </div>
 
   <div class="auth-card">
@@ -928,18 +1026,23 @@
     <div class="brand">
       <span class="lamp-dot"></span>
       <div>
-        <h1>Enfoque</h1>
+        <h1>PomoToe</h1>
         <p class="greet" id="greetText">Hola</p>
       </div>
     </div>
     <div class="header-actions">
-      <button class="icon-btn" title="Personalizar" onclick="openModal('modalPersonalizar')">⚙</button>
-      <button class="icon-btn" title="Cerrar sesión" onclick="logout()">⏻</button>
+      <button class="icon-btn" title="Personalizar" onclick="openModal('modalPersonalizar')">⚙️</button>
+      <button class="icon-btn" title="Cerrar sesión" onclick="logout()">🚪</button>
     </div>
   </header>
 
   <main>
     <section class="timer-section">
+      <button class="salas-btn" onclick="openModal('modalSalas')" title="Salas (próximamente)">
+        <span class="salas-ico">🏫</span>
+        <span>Salas</span>
+        <span class="salas-soon">Pronto</span>
+      </button>
       <div class="lamp-timer" id="lampTimer">
         <svg viewBox="0 0 220 220">
           <circle class="ring-bg" cx="110" cy="110" r="98"></circle>
@@ -1012,6 +1115,49 @@
       <button type="submit" class="btn btn-primary" style="width:auto;">Agregar</button>
     </form>
     <div id="materiasList"></div>
+    <hr class="section-divider">
+    <button class="nav-square" style="width:100%;" onclick="closeModal('modalMaterias'); openModal('modalHorario');">
+      <span class="ico">🗓️</span>Horario escolar
+    </button>
+  </div>
+</div>
+
+<!-- ============ MODAL: HORARIO ESCOLAR ============ -->
+<div class="modal-overlay hidden" id="modalHorarioOverlay" onclick="closeOnOverlay(event,'modalHorario')">
+  <div class="modal">
+    <div class="modal-head">
+      <h2>Horario escolar</h2>
+      <button class="modal-close" onclick="closeModal('modalHorario')">✕</button>
+    </div>
+    <div class="info-block">
+      Agrega los bloques de tu semana. Cuando elijas la materia con el botón + a esa misma hora, te la vamos a sugerir primero.
+    </div>
+    <form onsubmit="return handleAddHorarioBlock(event)" style="display:flex; flex-direction:column; gap:10px; margin-bottom:18px;">
+      <div class="duration-row">
+        <div class="field" style="margin-bottom:0;">
+          <label for="horarioDia">Día</label>
+          <select id="horarioDia" style="width:100%; padding:12px 14px; border-radius:9px; border:1px solid var(--border); background: var(--bg); color: var(--text);">
+            <option>Lunes</option><option>Martes</option><option>Miércoles</option><option>Jueves</option><option>Viernes</option><option>Sábado</option><option>Domingo</option>
+          </select>
+        </div>
+        <div class="field" style="margin-bottom:0;">
+          <label for="horarioMateria">Materia</label>
+          <select id="horarioMateria" style="width:100%; padding:12px 14px; border-radius:9px; border:1px solid var(--border); background: var(--bg); color: var(--text);"></select>
+        </div>
+      </div>
+      <div class="duration-row">
+        <div class="field" style="margin-bottom:0;">
+          <label for="horarioInicio">Desde</label>
+          <input type="time" id="horarioInicio" required style="width:100%; padding:12px 14px; border-radius:9px; border:1px solid var(--border); background: var(--bg); color: var(--text);">
+        </div>
+        <div class="field" style="margin-bottom:0;">
+          <label for="horarioFin">Hasta</label>
+          <input type="time" id="horarioFin" required style="width:100%; padding:12px 14px; border-radius:9px; border:1px solid var(--border); background: var(--bg); color: var(--text);">
+        </div>
+      </div>
+      <button type="submit" class="btn btn-primary">Agregar bloque</button>
+    </form>
+    <div id="horarioList"></div>
   </div>
 </div>
 
@@ -1049,6 +1195,8 @@
       <strong>Personalización</strong><br>
       Desde el ícono ⚙ en la parte superior puedes cambiar el color de acento, el tema claro/oscuro y la duración de tus bloques de enfoque y descanso.
     </div>
+    <hr class="section-divider">
+    <p style="text-align:center; font-size:11px; color:var(--text-muted); letter-spacing:0.04em; text-transform:uppercase;">PomoToe — un proyecto de 7Dragons</p>
   </div>
 </div>
 
@@ -1211,6 +1359,22 @@
   </div>
 </div>
 
+<!-- ============ MODAL: SALAS (adelanto, todavía no activo) ============ -->
+<div class="modal-overlay hidden" id="modalSalasOverlay" onclick="closeOnOverlay(event,'modalSalas')">
+  <div class="modal">
+    <div class="modal-head">
+      <h2>Salas 🏫</h2>
+      <button class="modal-close" onclick="closeModal('modalSalas')">✕</button>
+    </div>
+    <div class="info-block">
+      Las <strong>Salas</strong> van a permitir que un profesor cree una actividad, comparta un código, y sus estudiantes usen este mismo cronómetro para trabajar en ella — con el progreso de todos visible para el profesor.
+    </div>
+    <div class="info-block">
+      Todavía no está activo: necesita una base de datos real (lo estamos preparando con Supabase) para que la información se comparta entre dispositivos distintos. Por ahora este botón es solo un adelanto de lo que viene.
+    </div>
+  </div>
+</div>
+
 <div class="toast" id="toast"></div>
 
 <script>
@@ -1228,8 +1392,8 @@
    }
 ========================================================= */
 
-const DB_KEY = 'enfoque_users_v1';
-const SESSION_KEY = 'enfoque_current_user_v1';
+const DB_KEY = 'pomotoe_users_v1';
+const SESSION_KEY = 'pomotoe_current_user_v1';
 
 const ACCENTS = [
   { name:'Ámbar',    hex:'#F2A65A' },
@@ -1340,6 +1504,7 @@ function handleRegister(e){
     cycleProgress: 0,
     longBreaksEarned: 0,
     unlockedAchievements: [],
+    horario: [],
     settings: { accent:'#F2A65A', theme:'dark', focusMin:25, breakMin:5, cyclesEnabled:false, cyclesCount:4, longBreakMin:20 }
   };
   db[user] = newUser;
@@ -1367,6 +1532,7 @@ function bootSession(username, data){
   if(currentUserData.cycleProgress === undefined) currentUserData.cycleProgress = 0;
   if(currentUserData.longBreaksEarned === undefined) currentUserData.longBreaksEarned = 0;
   if(currentUserData.unlockedAchievements === undefined) currentUserData.unlockedAchievements = [];
+  if(currentUserData.horario === undefined) currentUserData.horario = [];
   applyTheme();
   document.getElementById('authScreen').classList.add('hidden');
   document.getElementById('appShell').classList.remove('hidden');
@@ -1496,6 +1662,91 @@ function renderMateriasList(){
   }).join('');
 }
 
+/* ---------------- Horario escolar ---------------- */
+const DIAS_ORDEN = ['Lunes','Martes','Miércoles','Jueves','Viernes','Sábado','Domingo'];
+
+function renderHorarioMateriaOptions(){
+  const sel = document.getElementById('horarioMateria');
+  if(currentUserData.materias.length === 0){
+    sel.innerHTML = '<option value="">Agrega una materia primero</option>';
+    return;
+  }
+  sel.innerHTML = currentUserData.materias.map(m => `<option value="${m.id}">${escapeHtml(m.nombre)}</option>`).join('');
+}
+
+function handleAddHorarioBlock(e){
+  e.preventDefault();
+  const dia = document.getElementById('horarioDia').value;
+  const materiaId = document.getElementById('horarioMateria').value;
+  const horaInicio = document.getElementById('horarioInicio').value;
+  const horaFin = document.getElementById('horarioFin').value;
+  if(!materiaId){
+    toast('Agrega al menos una materia antes de armar el horario.');
+    return false;
+  }
+  if(!horaInicio || !horaFin || horaFin <= horaInicio){
+    toast('La hora de fin debe ser después de la de inicio.');
+    return false;
+  }
+  if(!currentUserData.horario) currentUserData.horario = [];
+  currentUserData.horario.push({ id: 'sc_' + Date.now(), dia, materiaId, horaInicio, horaFin });
+  persistUser();
+  renderHorarioList();
+  toast('Bloque agregado al horario.');
+  return false;
+}
+
+function deleteHorarioBlock(id){
+  currentUserData.horario = (currentUserData.horario || []).filter(b => b.id !== id);
+  persistUser();
+  renderHorarioList();
+}
+
+function renderHorarioList(){
+  const el = document.getElementById('horarioList');
+  const bloques = currentUserData.horario || [];
+  if(bloques.length === 0){
+    el.innerHTML = '<div class="empty-state">Todavía no agregas bloques. Arma tu semana arriba ↑</div>';
+    return;
+  }
+  let html = '';
+  DIAS_ORDEN.forEach(dia => {
+    const delDia = bloques.filter(b => b.dia === dia).sort((a,b) => a.horaInicio.localeCompare(b.horaInicio));
+    if(delDia.length === 0) return;
+    html += `<div class="horario-day-label">${dia}</div>`;
+    html += delDia.map(b => {
+      const m = currentUserData.materias.find(x => x.id === b.materiaId);
+      const nombre = m ? m.nombre : 'Materia eliminada';
+      const color = m ? m.color : '#8D91A6';
+      return `<div class="horario-block">
+        <span class="swatch" style="background:${color}"></span>
+        <span class="horario-time">${b.horaInicio}–${b.horaFin}</span>
+        <span class="horario-materia">${escapeHtml(nombre)}</span>
+        <button class="del" onclick="deleteHorarioBlock('${b.id}')">Eliminar</button>
+      </div>`;
+    }).join('');
+  });
+  el.innerHTML = html || '<div class="empty-state">Todavía no agregas bloques. Arma tu semana arriba ↑</div>';
+}
+
+/* Busca si, según el horario guardado, ahora mismo (día y hora reales) toca
+   alguna materia — para sugerirla primero en el selector "+". */
+function getCurrentScheduleMateriaId(){
+  const bloques = currentUserData.horario || [];
+  if(bloques.length === 0) return null;
+  const now = new Date();
+  const diaNombre = DIAS_ORDEN[(now.getDay() + 6) % 7]; // getDay(): 0=domingo → reordenar a Lunes-Domingo
+  const minutosAhora = now.getHours() * 60 + now.getMinutes();
+  const bloque = bloques.find(b => {
+    if(b.dia !== diaNombre) return false;
+    const [hIni, mIni] = b.horaInicio.split(':').map(Number);
+    const [hFin, mFin] = b.horaFin.split(':').map(Number);
+    const ini = hIni * 60 + mIni, fin = hFin * 60 + mFin;
+    return minutosAhora >= ini && minutosAhora < fin;
+  });
+  return bloque ? bloque.materiaId : null;
+}
+
 function escapeHtml(str){
   const div = document.createElement('div');
   div.textContent = str;
@@ -1529,18 +1780,25 @@ function renderMateriaPicker(){
     </div>`;
     return;
   }
+  const scheduledId = getCurrentScheduleMateriaId();
+  const materiasOrdenadas = [...currentUserData.materias].sort((a, b) => {
+    if(a.id === scheduledId) return -1;
+    if(b.id === scheduledId) return 1;
+    return 0;
+  });
   picker.innerHTML = '<div class="picker-title">Elige la materia de tu sesión</div>' +
-    currentUserData.materias.map(m => {
+    materiasOrdenadas.map(m => {
       let saved = '';
       if(m.savedRemaining && m.savedRemaining > 0){
         const mm = Math.floor(m.savedRemaining/60).toString().padStart(2,'0');
         const ss = Math.floor(m.savedRemaining%60).toString().padStart(2,'0');
         saved = `<span class="materia-saved-badge">⏸ ${mm}:${ss}</span>`;
       }
+      const schedule = (m.id === scheduledId) ? '<span class="materia-schedule-badge">Ahora</span>' : '';
       return `<button class="materia-option" onclick="selectMateria('${m.id}')">
         <span class="swatch" style="background:${m.color}"></span>
         <span>${escapeHtml(m.nombre)}</span>
-        ${saved}
+        ${schedule}${saved}
       </button>`;
     }).join('');
 }
@@ -2336,6 +2594,7 @@ function openModal(id){
   if(id === 'modalMaterias') renderMateriasList();
   if(id === 'modalRegistro') renderHistoryList();
   if(id === 'modalLogros') renderAchievements();
+  if(id === 'modalHorario'){ renderHorarioMateriaOptions(); renderHorarioList(); }
   document.getElementById(id + 'Overlay').classList.remove('hidden');
 }
 function closeModal(id){
