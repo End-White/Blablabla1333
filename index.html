@@ -7,6 +7,8 @@
 <link rel="preconnect" href="https://fonts.googleapis.com">
 <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
 <link href="https://fonts.googleapis.com/css2?family=Fraunces:opsz,wght@9..144,500;9..144,600;9..144,700&family=Sora:wght@400;500;600;700&family=JetBrains+Mono:wght@500;600;700&display=swap" rel="stylesheet">
+<!-- Cliente de Supabase (Auth + Base de datos en la nube) -->
+<script src="https://cdn.jsdelivr.net/npm/@supabase/supabase-js@2/dist/umd/supabase.min.js"></script>
 <style>
   :root{
     --bg: #12141C;
@@ -987,8 +989,8 @@
     <!-- Login form -->
     <form id="formLogin" onsubmit="return handleLogin(event)">
       <div class="field">
-        <label for="loginUser">Usuario</label>
-        <input type="text" id="loginUser" autocomplete="username" required>
+        <label for="loginUser">Correo</label>
+        <input type="email" id="loginUser" autocomplete="email" required>
       </div>
       <div class="field">
         <label for="loginPass">Contraseña</label>
@@ -1005,18 +1007,18 @@
         <input type="text" id="regName" placeholder="Ej. Sofía" required>
       </div>
       <div class="field">
-        <label for="regUser">Usuario</label>
-        <input type="text" id="regUser" autocomplete="username" required>
+        <label for="regUser">Correo</label>
+        <input type="email" id="regUser" autocomplete="email" required>
       </div>
       <div class="field">
         <label for="regPass">Contraseña</label>
-        <input type="password" id="regPass" autocomplete="new-password" required minlength="4">
+        <input type="password" id="regPass" autocomplete="new-password" required minlength="6">
       </div>
       <p class="auth-error" id="registerError"></p>
       <button type="submit" class="btn btn-primary">Crear cuenta</button>
     </form>
 
-    <p class="auth-hint">Tus datos se guardan solo en este navegador (localStorage), no hay servidor detrás. Si cambias de dispositivo, empiezas de cero ahí.</p>
+    <p class="auth-hint">Tus datos se guardan de forma segura en la nube. Puedes entrar desde cualquier dispositivo con tu correo y contraseña.</p>
   </div>
 </div>
 
@@ -1185,7 +1187,7 @@
     </div>
     <div class="info-block">
       <strong>¿Cómo se guarda mi información?</strong><br>
-      Todo (usuario, materias, historial, logros y preferencias) se guarda en el <strong>localStorage</strong> de este navegador. No existe un servidor ni base de datos en la nube: si borras los datos del navegador o entras desde otro dispositivo, no verás tu historial.
+      Tu cuenta (correo y contraseña) y todos tus datos (materias, historial, logros y preferencias) se guardan de forma segura en una base de datos en la nube. Puedes entrar desde cualquier dispositivo con tu correo y contraseña, y siempre verás tu información más reciente.
     </div>
     <div class="info-block">
       <strong>¿Cómo empiezo una sesión?</strong><br>
@@ -1380,20 +1382,35 @@
 <script>
 /* =========================================================
    ENFOQUE — Pomodoro por materias
-   Persistencia: localStorage (sin backend / sin base de datos real).
-   Estructura guardada por usuario:
+   Persistencia: Supabase (Auth real + Postgres en la nube).
+
+   - El login/registro usa supabase.auth (contraseñas con hash seguro,
+     Supabase nunca guarda la contraseña en texto plano ni con btoa).
+   - Todo el resto de datos del usuario (materias, historial, logros,
+     horario y preferencias) se guarda como JSON en la tabla
+     "user_data", en una fila por usuario, protegida con Row Level
+     Security para que cada quien solo pueda leer/escribir la suya.
+
+   Estructura guardada en user_data.data (jsonb):
    {
-     password: string (ofuscada con btoa, NO es cifrado seguro),
      name: string,
      materias: [{id, nombre, color}],
      historial: [{id, materiaId, materiaNombre, minutos, fecha}],
-     cycleProgress: number (sesiones de enfoque seguidas desde el último descanso largo),
+     cycleProgress: number,
      settings: {accent, theme, focusMin, breakMin, cyclesEnabled, cyclesCount, longBreakMin}
    }
 ========================================================= */
 
-const DB_KEY = 'pomotoe_users_v1';
-const SESSION_KEY = 'pomotoe_current_user_v1';
+/* ---------------- Configuración de Supabase ----------------
+   Reemplaza estos dos valores con los de tu proyecto:
+   Supabase → Project Settings → API → "Project URL" y "anon public" key.
+   La anon key es pública y segura de exponer en el frontend siempre
+   y cuando tengas Row Level Security activado (así viene en
+   schema_supabase.sql). NUNCA expongas la "service_role" key aquí. */
+const SUPABASE_URL = 'https://TU-PROYECTO.supabase.co';
+const SUPABASE_ANON_KEY = 'TU-ANON-KEY-PUBLICA';
+
+const supabaseClient = window.supabase.createClient(SUPABASE_URL, SUPABASE_ANON_KEY);
 
 const ACCENTS = [
   { name:'Ámbar',    hex:'#F2A65A' },
@@ -1425,17 +1442,84 @@ let running = false;
 let timerInterval = null;
 let selectedMateriaId = null;
 
-/* ---------------- Persistencia ---------------- */
-function loadDB(){
-  try{ return JSON.parse(localStorage.getItem(DB_KEY) || '{}'); }
-  catch(e){ return {}; }
-}
-function saveDB(db){ localStorage.setItem(DB_KEY, JSON.stringify(db)); }
+/* ---------------- Persistencia (Supabase) ----------------
+   currentUser ahora es el UUID del usuario autenticado en Supabase
+   (antes era el nombre de usuario en texto plano). */
 
+let _saveTimeout = null;
+let _savingNow = false;
+let _pendingSave = false;
+
+/* persistUser() se sigue llamando igual que antes desde todo el código
+   (renderMateriasList, savePersonalizacion, etc.), pero ahora en vez de
+   escribir a localStorage, agenda un guardado en Supabase con un
+   pequeño "debounce" para no saturar la red si el usuario hace varios
+   cambios seguidos. */
 function persistUser(){
-  const db = loadDB();
-  db[currentUser] = currentUserData;
-  saveDB(db);
+  if(!currentUser || !currentUserData) return;
+  clearTimeout(_saveTimeout);
+  _saveTimeout = setTimeout(flushUserData, 500);
+}
+
+async function flushUserData(){
+  if(!currentUser || !currentUserData) return;
+  if(_savingNow){ _pendingSave = true; return; }
+  _savingNow = true;
+  const { error } = await supabaseClient
+    .from('user_data')
+    .update({ display_name: currentUserData.name, data: currentUserData })
+    .eq('user_id', currentUser);
+  _savingNow = false;
+  if(error){
+    console.error('Error guardando en Supabase:', error);
+    toast('No se pudo guardar en la nube. Revisa tu conexión.');
+  }
+  if(_pendingSave){ _pendingSave = false; flushUserData(); }
+}
+
+/* Trae la fila de datos del usuario ya autenticado. Si es su primer
+   ingreso y el trigger de la base de datos aún no creó la fila,
+   la crea aquí mismo con los valores por defecto. */
+async function fetchUserData(userId, fallbackName){
+  let { data, error } = await supabaseClient
+    .from('user_data')
+    .select('data, display_name')
+    .eq('user_id', userId)
+    .maybeSingle();
+
+  if(error){
+    console.error('Error leyendo datos de Supabase:', error);
+    toast('No se pudo cargar tu información desde la nube.');
+    return null;
+  }
+
+  if(!data){
+    const defaults = defaultUserData(fallbackName);
+    const { error: insertError } = await supabaseClient
+      .from('user_data')
+      .insert({ user_id: userId, display_name: fallbackName, data: defaults });
+    if(insertError){
+      console.error('Error creando datos de usuario:', insertError);
+      toast('No se pudo crear tu perfil en la nube.');
+      return null;
+    }
+    return defaults;
+  }
+
+  return data.data && Object.keys(data.data).length ? data.data : defaultUserData(data.display_name || fallbackName);
+}
+
+function defaultUserData(name){
+  return {
+    name: name || 'Estudiante',
+    materias: [],
+    historial: [],
+    cycleProgress: 0,
+    longBreaksEarned: 0,
+    unlockedAchievements: [],
+    horario: [],
+    settings: { accent:'#F2A65A', theme:'dark', focusMin:25, breakMin:5, cyclesEnabled:false, cyclesCount:4, longBreakMin:20 }
+  };
 }
 
 /* ---------------- Utilidades ---------------- */
@@ -1467,62 +1551,86 @@ function switchAuthTab(which){
   document.getElementById('formRegister').classList.toggle('hidden', which!=='register');
 }
 
-function handleLogin(e){
+async function handleLogin(e){
   e.preventDefault();
-  const user = document.getElementById('loginUser').value.trim();
+  const email = document.getElementById('loginUser').value.trim();
   const pass = document.getElementById('loginPass').value;
   const errEl = document.getElementById('loginError');
-  const db = loadDB();
-  const u = db[user];
-  if(!u || u.password !== btoa(pass)){
-    errEl.textContent = 'Usuario o contraseña incorrectos.';
+  const btn = e.target.querySelector('button[type="submit"]');
+
+  errEl.textContent = '';
+  btn.disabled = true;
+  btn.textContent = 'Entrando…';
+
+  const { data, error } = await supabaseClient.auth.signInWithPassword({ email, password: pass });
+
+  btn.disabled = false;
+  btn.textContent = 'Entrar';
+
+  if(error){
+    errEl.textContent = 'Correo o contraseña incorrectos.';
     return false;
   }
-  errEl.textContent = '';
-  localStorage.setItem(SESSION_KEY, user);
-  bootSession(user, u);
+
+  const userId = data.user.id;
+  const userData = await fetchUserData(userId, email.split('@')[0]);
+  if(!userData) return false;
+
+  bootSession(userId, userData);
   return false;
 }
 
-function handleRegister(e){
+async function handleRegister(e){
   e.preventDefault();
   const name = document.getElementById('regName').value.trim();
-  const user = document.getElementById('regUser').value.trim();
+  const email = document.getElementById('regUser').value.trim();
   const pass = document.getElementById('regPass').value;
   const errEl = document.getElementById('registerError');
-  const db = loadDB();
-  if(db[user]){
-    errEl.textContent = 'Ese nombre de usuario ya existe.';
+  const btn = e.target.querySelector('button[type="submit"]');
+
+  errEl.textContent = '';
+  btn.disabled = true;
+  btn.textContent = 'Creando…';
+
+  const { data, error } = await supabaseClient.auth.signUp({
+    email,
+    password: pass,
+    options: { data: { full_name: name || email.split('@')[0] } }
+  });
+
+  btn.disabled = false;
+  btn.textContent = 'Crear cuenta';
+
+  if(error){
+    errEl.textContent = error.message.includes('already registered')
+      ? 'Ese correo ya tiene una cuenta.'
+      : 'No se pudo crear la cuenta: ' + error.message;
     return false;
   }
-  errEl.textContent = '';
-  const newUser = {
-    password: btoa(pass),
-    name: name || user,
-    materias: [],
-    historial: [],
-    cycleProgress: 0,
-    longBreaksEarned: 0,
-    unlockedAchievements: [],
-    horario: [],
-    settings: { accent:'#F2A65A', theme:'dark', focusMin:25, breakMin:5, cyclesEnabled:false, cyclesCount:4, longBreakMin:20 }
-  };
-  db[user] = newUser;
-  saveDB(db);
-  localStorage.setItem(SESSION_KEY, user);
-  bootSession(user, newUser);
+
+  if(!data.session){
+    errEl.textContent = '';
+    toast('Cuenta creada. Revisa tu correo para confirmarla y luego inicia sesión.');
+    switchAuthTab('login');
+    return false;
+  }
+
+  const userId = data.user.id;
+  const newUser = defaultUserData(name || email.split('@')[0]);
+  await supabaseClient.from('user_data').upsert({ user_id: userId, display_name: newUser.name, data: newUser });
+  bootSession(userId, newUser);
   return false;
 }
 
-function logout(){
+async function logout(){
   pauseTimer();
-  localStorage.removeItem(SESSION_KEY);
+  await supabaseClient.auth.signOut();
   location.reload();
 }
 
 /* ---------------- Arranque de sesión ---------------- */
-function bootSession(username, data){
-  currentUser = username;
+function bootSession(userId, data){
+  currentUser = userId;
   currentUserData = data;
   if(!currentUserData.settings) currentUserData.settings = { accent:'#F2A65A', theme:'dark', focusMin:25, breakMin:5 };
   const s = currentUserData.settings;
@@ -2568,7 +2676,7 @@ function savePersonalizacion(){
   const breakMin = parseInt(document.getElementById('breakMinInput').value, 10) || 5;
   const cyclesCount = parseInt(document.getElementById('cyclesCountInput').value, 10) || 4;
   const longBreakMin = parseInt(document.getElementById('longBreakMinInput').value, 10) || 20;
-  const name = document.getElementById('displayNameInput').value.trim() || currentUser;
+  const name = document.getElementById('displayNameInput').value.trim() || currentUserData.name;
 
   currentUserData.settings.accent = previewAccent || currentUserData.settings.accent;
   currentUserData.settings.theme = previewTheme || currentUserData.settings.theme;
@@ -2616,20 +2724,26 @@ document.addEventListener('click', function(e){
 });
 
 /* Red de seguridad: si cierran la pestaña/navegador a mitad de una sesión,
-   guardamos el estado justo antes de que se descargue la página. */
+   guardamos el estado justo antes de que se descargue la página.
+   Como ya no es localStorage sino una llamada de red a Supabase, no hay
+   garantía de que termine antes de que se cierre la pestaña, pero
+   forzamos el guardado inmediato (sin esperar el debounce) para
+   maximizar las chances de que se alcance a enviar. */
 window.addEventListener('beforeunload', function(){
   if(currentUserData && running){
-    saveTimerState();
+    currentUserData.timerState = { mode, remaining, totalForMode, selectedMateriaId, running, savedAt: Date.now() };
+    clearTimeout(_saveTimeout);
+    flushUserData();
   }
 });
 
 /* ---------------- Arranque de la app ---------------- */
-(function init(){
-  const savedUser = localStorage.getItem(SESSION_KEY);
-  if(savedUser){
-    const db = loadDB();
-    if(db[savedUser]){
-      bootSession(savedUser, db[savedUser]);
+(async function init(){
+  const { data: { session } } = await supabaseClient.auth.getSession();
+  if(session && session.user){
+    const userData = await fetchUserData(session.user.id, session.user.email.split('@')[0]);
+    if(userData){
+      bootSession(session.user.id, userData);
       return;
     }
   }
