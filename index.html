@@ -1039,8 +1039,206 @@
   }
   html[data-theme="light"] .entrega-card .entrega-grade-row input{ background: var(--surface); }
 
+  /* =========================================================
+     ✨ PULIDO VISUAL — animaciones de entrada, hover, carga y ambiente
+  ========================================================= */
+
+  /* ---- Fondo con vida propia: dos halos que respiran muy lento ---- */
+  body::before, body::after{
+    content:'';
+    position:fixed;
+    width:60vmax; height:60vmax;
+    border-radius:50%;
+    filter: blur(80px);
+    opacity:0.35;
+    pointer-events:none;
+    z-index:0;
+    background: radial-gradient(circle, rgba(var(--accent-rgb),0.35), transparent 70%);
+    animation: drift-a 22s ease-in-out infinite;
+  }
+  body::after{
+    width:50vmax; height:50vmax;
+    background: radial-gradient(circle, rgba(var(--accent-rgb),0.18), transparent 70%);
+    animation: drift-b 26s ease-in-out infinite;
+    opacity:0.25;
+  }
+  @keyframes drift-a{
+    0%,100%{ transform: translate(-10vw,-15vh) scale(1); }
+    50%{ transform: translate(8vw,10vh) scale(1.15); }
+  }
+  @keyframes drift-b{
+    0%,100%{ transform: translate(60vw,70vh) scale(1); }
+    50%{ transform: translate(45vw,55vh) scale(1.2); }
+  }
+  .app-frame, #authScreen{ position:relative; z-index:1; }
+
+  /* ---- Entrada de pantallas ---- */
+  @keyframes page-fade-in{
+    from{ opacity:0; transform: translateY(10px); }
+    to{ opacity:1; transform: translateY(0); }
+  }
+  #authScreen{ animation: page-fade-in .6s cubic-bezier(0.22,1,0.36,1) both; }
+  .app-frame:not(.hidden){ animation: page-fade-in .55s cubic-bezier(0.22,1,0.36,1) both; }
+
+  @keyframes brand-pop{
+    0%{ transform: scale(0.6); opacity:0; }
+    60%{ transform: scale(1.08); opacity:1; }
+    100%{ transform: scale(1); }
+  }
+  .auth-brand .lamp-mark{ animation: brand-pop .7s cubic-bezier(0.34,1.56,0.64,1) both; }
+  .auth-brand h1{ animation: page-fade-in .6s ease .1s both; }
+  .auth-brand p, .auth-brand .dev-credit{ animation: page-fade-in .6s ease .18s both; }
+  .auth-card{ animation: page-fade-in .5s cubic-bezier(0.22,1,0.36,1) .12s both; }
+
+  /* ---- Botones: elevación suave + press más orgánico ---- */
+  .btn{ transition: transform .16s cubic-bezier(0.34,1.56,0.64,1), background .2s ease, box-shadow .25s ease, filter .2s ease; }
+  .btn-primary:hover{ box-shadow: 0 10px 30px rgba(var(--accent-rgb),0.45); filter:brightness(1.04); transform: translateY(-1px); }
+  .btn-secondary:hover{ transform: translateY(-1px); box-shadow: 0 6px 16px rgba(0,0,0,0.18); }
+  .btn:active{ transform: scale(0.96) translateY(0); }
+
+  .icon-btn{ transition: background .2s ease, color .2s ease, transform .35s cubic-bezier(0.34,1.56,0.64,1); }
+  .icon-btn:hover{ transform: rotate(-8deg) scale(1.06); }
+  .icon-btn[title="Cerrar sesión"]:hover{ transform: rotate(8deg) scale(1.06); }
+
+  .nav-square{ transition: background .2s ease, transform .2s cubic-bezier(0.34,1.56,0.64,1), box-shadow .25s ease; }
+  .nav-square:hover{ transform: translateY(-2px); box-shadow: 0 8px 18px rgba(0,0,0,0.18); }
+
+  /* ---- today-card: respiración sutil cuando hay algo pendiente ---- */
+  .today-card{ transition: background .2s ease, transform .2s ease, box-shadow .25s ease; }
+  .today-card:hover{ transform: translateY(-2px); box-shadow: 0 10px 24px rgba(0,0,0,0.18); }
+  .today-card:has(.pending-dot.blink){ animation: card-breathe 3.2s ease-in-out infinite; }
+  @keyframes card-breathe{
+    0%,100%{ box-shadow: 0 0 0 0 rgba(var(--accent-rgb),0); }
+    50%{ box-shadow: 0 0 0 6px rgba(var(--accent-rgb),0.06); }
+  }
+
+  /* ---- Salas / rows: entrada escalonada + hover levitando ---- */
+  .materia-row, .tarea-row, .history-item, .horario-block, .entrega-card, .ranking-row, .achv{
+    animation: row-slide-in .4s cubic-bezier(0.22,1,0.36,1) both;
+  }
+  .achv.just-unlocked{ animation: achv-pop .8s ease both; }
+  @keyframes row-slide-in{
+    from{ opacity:0; transform: translateY(10px) scale(0.98); }
+    to{ opacity:1; transform: translateY(0) scale(1); }
+  }
+  .materia-row, .tarea-row, .entrega-card{ transition: background .18s ease, transform .18s ease, box-shadow .22s ease, border-color .2s ease; }
+  .materia-row:hover, .entrega-card:hover{ transform: translateY(-2px); box-shadow: 0 8px 18px rgba(0,0,0,0.16); }
+  .tarea-row:hover{ transform: translateX(3px); border-color: rgba(var(--accent-rgb),0.4); }
+
+  .tarea-badge{ transition: transform .2s cubic-bezier(0.34,1.56,0.64,1); }
+  .tarea-row:hover .tarea-badge{ transform: scale(1.08); }
+
+  /* ---- Ranking: medallas y brillo para el top 3 ---- */
+  .ranking-row{ transition: background .2s ease; }
+  .ranking-row:hover{ background: var(--surface-hover); }
+  .ranking-row:nth-child(1){ position:relative; }
+  .ranking-row:nth-child(1) .ranking-pos::before{ content:'🥇'; margin-right:2px; }
+  .ranking-row:nth-child(2) .ranking-pos::before{ content:'🥈'; margin-right:2px; }
+  .ranking-row:nth-child(3) .ranking-pos::before{ content:'🥉'; margin-right:2px; }
+  .ranking-row:nth-child(1){ animation: row-slide-in .4s cubic-bezier(0.22,1,0.36,1) both, gold-glow 2.4s ease-in-out .4s infinite; }
+  @keyframes gold-glow{
+    0%,100%{ background: transparent; }
+    50%{ background: rgba(var(--accent-rgb),0.06); }
+  }
+
+  /* ---- Pestañas (auth-tab, sala-tab): transición más viva ---- */
+  .auth-tab, .sala-tab{ transition: background .25s cubic-bezier(0.22,1,0.36,1), color .25s ease, transform .15s ease; }
+  .auth-tab.active, .sala-tab.active{ animation: tab-pop .3s cubic-bezier(0.34,1.56,0.64,1); }
+  @keyframes tab-pop{
+    0%{ transform: scale(0.94); }
+    100%{ transform: scale(1); }
+  }
+
+  /* ---- Inputs: glow suave al enfocar ---- */
+  .field input, .textarea-field, select{
+    transition: border-color .2s ease, box-shadow .25s ease, background .2s ease;
+  }
+  .field input:focus, .textarea-field:focus, select:focus{
+    box-shadow: 0 0 0 4px rgba(var(--accent-rgb),0.14);
+    outline: none;
+  }
+
+  /* ---- Sala code pill: pulso llamativo para que se note que es copiable ---- */
+  .sala-code-pill{ animation: pill-pulse 2.6s ease-in-out infinite; }
+  @keyframes pill-pulse{
+    0%,100%{ box-shadow: 0 0 0 0 rgba(var(--accent-rgb),0.35); }
+    50%{ box-shadow: 0 0 0 5px rgba(var(--accent-rgb),0); }
+  }
+
+  /* ---- Spinner de carga (reemplaza los "Cargando…" planos) ---- */
+  .loading-spin{
+    display:flex; flex-direction:column; align-items:center; gap:10px;
+    padding: 30px 10px; color: var(--text-muted); font-size:13px;
+  }
+  .loading-spin .spin-ring{
+    width:28px; height:28px; border-radius:50%;
+    border: 3px solid var(--border);
+    border-top-color: var(--accent);
+    animation: spin-rotate .7s linear infinite;
+  }
+  @keyframes spin-rotate{ to{ transform: rotate(360deg); } }
+
+  /* ---- Toast: entrada con leve rebote ---- */
+  .toast{ transition: opacity .3s cubic-bezier(0.34,1.56,0.64,1), transform .35s cubic-bezier(0.34,1.56,0.64,1); }
+  .toast.show{ animation: toast-pop .35s cubic-bezier(0.34,1.56,0.64,1); }
+  @keyframes toast-pop{
+    0%{ transform: translateX(-50%) translateY(14px) scale(0.9); opacity:0; }
+    60%{ transform: translateX(-50%) translateY(-2px) scale(1.02); opacity:1; }
+    100%{ transform: translateX(-50%) translateY(0) scale(1); }
+  }
+
+  /* ---- Logros: brillo recorriendo la tarjeta al desbloquear ---- */
+  .achv.unlocked{ position:relative; overflow:hidden; }
+  .achv.just-unlocked::after{
+    content:'';
+    position:absolute; inset:0;
+    background: linear-gradient(115deg, transparent 30%, rgba(255,255,255,0.35) 50%, transparent 70%);
+    background-size: 250% 100%;
+    animation: shine-sweep 1s ease-out;
+  }
+  @keyframes shine-sweep{
+    from{ background-position: 150% 0; }
+    to{ background-position: -50% 0; }
+  }
+  .achv-check{ animation: check-pop .35s cubic-bezier(0.34,1.56,0.64,1) both; }
+  @keyframes check-pop{
+    from{ transform: scale(0); opacity:0; }
+    to{ transform: scale(1); opacity:1; }
+  }
+
+  /* ---- Timer: respiración sutil del anillo cuando está detenido a full ---- */
+  .lamp-timer:not(.is-break):not(.is-longbreak) .ring-fg{
+    animation: ring-idle-glow 3.5s ease-in-out infinite;
+  }
+  @keyframes ring-idle-glow{
+    0%,100%{ filter: drop-shadow(0 0 8px rgba(var(--accent-rgb),0.6)); }
+    50%{ filter: drop-shadow(0 0 16px rgba(var(--accent-rgb),0.85)); }
+  }
+  .ring-fg.live{ animation: none !important; }
+  .digits{ transition: transform .15s ease; }
+
+  /* ---- FAB: pequeño respiro cuando no hay materia seleccionada, para invitar a tocar ---- */
+  .fab{ animation: fab-invite 2.8s ease-in-out infinite; }
+  .fab.open{ animation: none; }
+  @keyframes fab-invite{
+    0%,100%{ box-shadow: 0 10px 26px rgba(var(--accent-rgb),0.45); }
+    50%{ box-shadow: 0 10px 34px rgba(var(--accent-rgb),0.65); }
+  }
+
+  /* ---- Swatches y color wheel: micro-interacción ---- */
+  .swatch-pick, .color-swatch-btn, .materia-row .swatch{
+    transition: transform .2s cubic-bezier(0.34,1.56,0.64,1), border-color .2s ease;
+  }
+  .swatch-pick:hover, .color-swatch-btn:hover{ transform: scale(1.12) rotate(-4deg); }
+  .wheel-handle{ transition: left .05s linear, top .05s linear; }
+  #colorWheel:active .wheel-handle{ transform: translate(-50%,-50%) scale(1.25); }
+
+  /* ---- Empty states: fade suave para que no aparezcan de golpe ---- */
+  .empty-state{ animation: page-fade-in .4s ease both; }
+
   @media (prefers-reduced-motion: reduce){
     *{ animation-duration: 0.001ms !important; transition-duration: 0.001ms !important; }
+    body::before, body::after{ display:none; }
   }
 </style>
 </head>
@@ -1961,7 +2159,7 @@ function renderMateriasList(){
     el.innerHTML = '<div class="empty-state">Aún no tienes materias. Agrega la primera arriba ↑</div>';
     return;
   }
-  el.innerHTML = currentUserData.materias.map(m => {
+  el.innerHTML = currentUserData.materias.map((m, i) => {
     const total = currentUserData.historial.filter(h => h.materiaId === m.id)
                     .reduce((acc,h) => acc + h.minutos, 0);
     let saved = '';
@@ -1970,7 +2168,7 @@ function renderMateriasList(){
       const ss = Math.floor(m.savedRemaining%60).toString().padStart(2,'0');
       saved = `<span class="materia-saved-badge">⏸ ${mm}:${ss}</span>`;
     }
-    return `<div class="materia-row">
+    return `<div class="materia-row" style="animation-delay:${Math.min(i,10)*40}ms">
       <button class="swatch" style="background:${m.color}" title="Cambiar color" onclick="openColorPopover('edit','${m.id}')"></button>
       <span class="name">${escapeHtml(m.nombre)}</span>
       ${saved}
@@ -2511,8 +2709,8 @@ function renderHistoryList(){
     el.innerHTML = '<div class="empty-state">Todavía no completas ninguna sesión. Cuando termines un bloque de enfoque, aparecerá aquí.</div>';
     return;
   }
-  el.innerHTML = currentUserData.historial.map(h => `
-    <div class="history-item">
+  el.innerHTML = currentUserData.historial.map((h, i) => `
+    <div class="history-item" style="animation-delay:${Math.min(i,10)*35}ms">
       <div class="h-left">
         <div class="h-materia">${escapeHtml(h.materiaNombre)}</div>
         <div class="h-date">${fmtDate(h.fecha)}</div>
@@ -2604,11 +2802,11 @@ function renderAchievements(){
 
   document.getElementById('achvSummaryCount').textContent = `${unlockedIds.size}/${defs.length}`;
 
-  document.getElementById('achvList').innerHTML = defs.map(d => {
+  document.getElementById('achvList').innerHTML = defs.map((d, i) => {
     const unlocked = unlockedIds.has(d.id);
     const celebrate = achievementsToCelebrate.includes(d.id);
     const sub = (!unlocked && d.progress) ? d.progress : d.desc;
-    return `<div class="achv ${unlocked ? 'unlocked' : ''} ${celebrate ? 'just-unlocked' : ''}">
+    return `<div class="achv ${unlocked ? 'unlocked' : ''} ${celebrate ? 'just-unlocked' : ''}" style="animation-delay:${Math.min(i,10)*30}ms">
       <div class="achv-ico">${d.ico}</div>
       <div>
         <div class="achv-name">${d.name} <span class="achv-check">✓ Conseguido</span></div>
@@ -3023,7 +3221,7 @@ function verEntregaDesdeHoy(entrega){
 async function openModalSalas(){
   const cont = document.getElementById('salasContent');
   document.getElementById('salasModalTitle').textContent = currentUserRole === 'profesor' ? 'Mis salas 🏫' : 'Salas 🏫';
-  cont.innerHTML = '<div class="empty-state">Cargando…</div>';
+  cont.innerHTML = '<div class="loading-spin"><div class="spin-ring"></div><span>Cargando…</span></div>';
 
   if(currentUserRole === 'profesor'){
     const { data: salas, error } = await supabaseClient
@@ -3191,7 +3389,7 @@ async function marcarComoEnviado(entregaId){
 async function abrirPanelProfesor(salaId, nombreSala, codigo){
   closeModal('modalSalas');
   document.getElementById('salaProfesorTitle').innerHTML = `${escapeHtml(nombreSala)} <span class="sala-code-pill" style="margin-left:8px;">${codigo}</span>`;
-  document.getElementById('salaProfesorContent').innerHTML = '<div class="empty-state">Cargando…</div>';
+  document.getElementById('salaProfesorContent').innerHTML = '<div class="loading-spin"><div class="spin-ring"></div><span>Cargando…</span></div>';
   document.getElementById('modalSalaProfesorOverlay').classList.remove('hidden');
   await renderPanelProfesorTab(salaId, 'tareas');
 }
@@ -3296,7 +3494,7 @@ async function handleCrearTarea(e, salaId){
 
 async function verEntregasDeTarea(tareaId, titulo){
   document.getElementById('entregasTitle').textContent = titulo;
-  document.getElementById('entregasContent').innerHTML = '<div class="empty-state">Cargando…</div>';
+  document.getElementById('entregasContent').innerHTML = '<div class="loading-spin"><div class="spin-ring"></div><span>Cargando…</span></div>';
   document.getElementById('modalEntregasOverlay').classList.remove('hidden');
 
   const { data: entregas, error } = await supabaseClient
