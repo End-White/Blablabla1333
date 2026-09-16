@@ -258,8 +258,7 @@
     gap:16px;
   }
 
-  /* Tarjeta "Actividad actual" — reservada para cuando conectemos las Salas.
-     Se reutiliza el mismo patrón visual que tenía "¿Qué tienes para hoy?". */
+  /* Tarjeta "¿Qué tienes para hoy?" — ahora es el centro de notificaciones de Salas */
   .today-card{
     background: var(--surface-2);
     border:1px solid var(--border);
@@ -288,8 +287,9 @@
     border-radius:50%;
     background: var(--success);
     box-shadow: 0 0 0 0 rgba(var(--success-rgb), 0.7);
+    visibility: hidden;
   }
-  .pending-dot.blink{ animation: pulse-dot 1.6s ease-in-out infinite; }
+  .pending-dot.blink{ animation: pulse-dot 1.6s ease-in-out infinite; visibility: visible; }
   @keyframes pulse-dot{
     0%, 100% { opacity:1; box-shadow: 0 0 0 0 rgba(var(--success-rgb), 0.65); }
     50% { opacity:0.45; box-shadow: 0 0 0 7px rgba(var(--success-rgb), 0); }
@@ -964,6 +964,81 @@
   }
   .toast.show{ opacity:1; transform: translateX(-50%) translateY(0); }
 
+  /* ---------------- Salas / Classroom ---------------- */
+  .role-badge{
+    display:inline-block;
+    font-size:10px; font-weight:700; text-transform:uppercase; letter-spacing:0.05em;
+    padding:3px 9px; border-radius:999px;
+    background: rgba(var(--accent-rgb),0.15); color: var(--accent);
+    margin-left:8px;
+  }
+  .sala-code-pill{
+    display:inline-flex; align-items:center; gap:6px;
+    font-family: var(--font-mono); font-weight:700; font-size:13px;
+    background: rgba(var(--accent-rgb),0.12); color: var(--accent);
+    padding:4px 10px; border-radius:999px;
+  }
+  .tarea-row{
+    display:flex; align-items:center; gap:12px;
+    padding:12px;
+    border:1px solid var(--border);
+    border-radius: var(--radius-sm);
+    margin-bottom:8px;
+    cursor:pointer;
+    transition: background .15s ease;
+    animation: row-fade-in .35s ease;
+  }
+  .tarea-row:hover{ background: var(--surface-hover); }
+  .tarea-row .tarea-main{ flex:1; min-width:0; }
+  .tarea-row .tarea-title{ font-weight:600; font-size:14px; }
+  .tarea-row .tarea-sala{ font-size:11px; color: var(--text-muted); margin-top:2px; }
+  .tarea-badge{
+    flex:none; font-size:10.5px; font-weight:700; text-transform:uppercase; letter-spacing:0.03em;
+    padding:4px 9px; border-radius:999px; white-space:nowrap;
+  }
+  .tarea-badge.pendiente{ background: rgba(var(--accent-rgb),0.15); color: var(--accent); }
+  .tarea-badge.enviado{ background: rgba(127,183,190,0.18); color:#7FB7BE; }
+  .tarea-badge.calificado{ background: rgba(var(--success-rgb),0.18); color: var(--success); }
+  .ranking-row{
+    display:flex; align-items:center; gap:10px;
+    padding:10px 12px;
+    border-bottom:1px solid var(--border);
+  }
+  .ranking-row:last-child{ border-bottom:none; }
+  .ranking-pos{
+    width:22px; text-align:center; font-family:var(--font-mono); font-weight:700; color: var(--text-muted); flex:none;
+  }
+  .ranking-row:nth-child(1) .ranking-pos{ color: var(--accent); }
+  .ranking-name{ flex:1; font-weight:600; font-size:13.5px; }
+  .ranking-min{ font-family: var(--font-mono); font-size:12.5px; color: var(--text-muted); }
+  .sala-tab-row{ display:flex; gap:6px; background: var(--bg); border-radius: var(--radius-md); padding:4px; margin-bottom:16px; }
+  html[data-theme="light"] .sala-tab-row{ background: var(--surface); }
+  .sala-tab{
+    flex:1; border:none; background:transparent; padding:9px 0; border-radius:10px;
+    color: var(--text-muted); font-weight:600; font-size:12.5px;
+  }
+  .sala-tab.active{ background: var(--surface-2); color: var(--text); }
+  html[data-theme="light"] .sala-tab.active{ background: var(--surface-hover); }
+  .textarea-field{
+    width:100%; padding:12px 14px; border-radius:9px; border:1px solid var(--border);
+    background: var(--bg); color: var(--text); font-family:inherit; font-size:14px; resize:vertical;
+  }
+  html[data-theme="light"] .textarea-field{ background: var(--surface); }
+  .entrega-card{
+    border:1px solid var(--border); border-radius: var(--radius-sm); padding:12px; margin-bottom:10px;
+  }
+  .entrega-card .entrega-head{ display:flex; align-items:center; justify-content:space-between; gap:8px; margin-bottom:6px; }
+  .entrega-card .entrega-name{ font-weight:700; font-size:13.5px; }
+  .entrega-card a{ color: var(--accent); font-size:12.5px; word-break:break-all; }
+  .entrega-card .entrega-grade-row{ display:flex; gap:6px; margin-top:8px; }
+  .entrega-card .entrega-grade-row input[type="number"]{
+    width:64px; padding:9px; border-radius:7px; border:1px solid var(--border); background: var(--bg); color: var(--text);
+  }
+  .entrega-card .entrega-grade-row input[type="text"]{
+    flex:1; padding:9px; border-radius:7px; border:1px solid var(--border); background: var(--bg); color: var(--text);
+  }
+  html[data-theme="light"] .entrega-card .entrega-grade-row input{ background: var(--surface); }
+
   @media (prefers-reduced-motion: reduce){
     *{ animation-duration: 0.001ms !important; transition-duration: 0.001ms !important; }
   }
@@ -1014,6 +1089,13 @@
       <div class="field">
         <label for="regPass">Contraseña</label>
         <input type="password" id="regPass" autocomplete="new-password" required minlength="6">
+      </div>
+      <div class="field">
+        <label>Tipo de cuenta</label>
+        <div class="theme-toggle">
+          <button type="button" class="theme-opt selected" id="roleStudentBtn" onclick="pickRegisterRole('estudiante')">🎓 Estudiante</button>
+          <button type="button" class="theme-opt" id="roleTeacherBtn" onclick="pickRegisterRole('profesor')">🧑‍🏫 Profesor</button>
+        </div>
       </div>
       <p class="auth-error" id="registerError"></p>
       <button type="submit" class="btn btn-primary">Crear cuenta</button>
@@ -1070,11 +1152,21 @@
   </header>
 
   <main>
+    <button class="today-card" id="todayCard" onclick="openModalHoy()">
+      <div>
+        <div class="today-text">¿Qué tienes para hoy?</div>
+        <div class="today-sub" id="todaySub">Cargando…</div>
+      </div>
+      <div class="today-right">
+        <span class="pending-dot" id="pendingDot"></span>
+        <span class="today-arrow">›</span>
+      </div>
+    </button>
+
     <section class="timer-section">
-      <button class="salas-btn" onclick="openModal('modalSalas')" title="Salas (próximamente)">
+      <button class="salas-btn" onclick="openModal('modalSalas')" title="Salas">
         <span class="salas-ico">🏫</span>
         <span>Salas</span>
-        <span class="salas-soon">Pronto</span>
       </button>
       <div class="lamp-timer" id="lampTimer">
         <svg viewBox="0 0 220 220">
@@ -1133,6 +1225,17 @@
       </button>
     </div>
   </nav>
+</div>
+
+<!-- ============ MODAL: ¿QUÉ TIENES PARA HOY? ============ -->
+<div class="modal-overlay hidden" id="modalHoyOverlay" onclick="closeOnOverlay(event,'modalHoy')">
+  <div class="modal">
+    <div class="modal-head">
+      <h2>¿Qué tienes para hoy?</h2>
+      <button class="modal-close" onclick="closeModal('modalHoy')">✕</button>
+    </div>
+    <div id="hoyList"></div>
+  </div>
 </div>
 
 <!-- ============ MODAL: MATERIAS ============ -->
@@ -1223,6 +1326,10 @@
     <div class="info-block">
       <strong>¿Cómo empiezo una sesión?</strong><br>
       Toca el botón <strong>+</strong>, elige la materia y presiona <strong>Iniciar</strong>. Al completarse, se guarda automáticamente en tu registro.
+    </div>
+    <div class="info-block">
+      <strong>Salas</strong><br>
+      Si eres profesor, puedes crear salas y asignar tareas a tus estudiantes. Si eres estudiante, únete a una sala con el código que te dé tu profesor para ver y entregar tus tareas.
     </div>
     <div class="info-block">
       <strong>Personalización</strong><br>
@@ -1392,19 +1499,58 @@
   </div>
 </div>
 
-<!-- ============ MODAL: SALAS (adelanto, todavía no activo) ============ -->
+<!-- ============ MODAL: SALAS ============ -->
 <div class="modal-overlay hidden" id="modalSalasOverlay" onclick="closeOnOverlay(event,'modalSalas')">
   <div class="modal">
     <div class="modal-head">
-      <h2>Salas 🏫</h2>
+      <h2 id="salasModalTitle">Salas 🏫</h2>
       <button class="modal-close" onclick="closeModal('modalSalas')">✕</button>
     </div>
-    <div class="info-block">
-      Las <strong>Salas</strong> van a permitir que un profesor cree una actividad, comparta un código, y sus estudiantes usen este mismo cronómetro para trabajar en ella — con el progreso de todos visible para el profesor.
+    <div id="salasContent"></div>
+  </div>
+</div>
+
+<!-- ============ MODAL: DETALLE DE SALA (profesor) ============ -->
+<div class="modal-overlay hidden" id="modalSalaProfesorOverlay" onclick="closeOnOverlay(event,'modalSalaProfesor')">
+  <div class="modal">
+    <div class="modal-head">
+      <h2 id="salaProfesorTitle">Sala</h2>
+      <button class="modal-close" onclick="closeModal('modalSalaProfesor'); openModal('modalSalas');">✕</button>
     </div>
-    <div class="info-block">
-      Todavía no está activo: necesita una base de datos real (lo estamos preparando con Supabase) para que la información se comparta entre dispositivos distintos. Por ahora este botón es solo un adelanto de lo que viene.
+    <div id="salaProfesorContent"></div>
+  </div>
+</div>
+
+<!-- ============ MODAL: DETALLE DE SALA (estudiante) ============ -->
+<div class="modal-overlay hidden" id="modalSalaEstudianteOverlay" onclick="closeOnOverlay(event,'modalSalaEstudiante')">
+  <div class="modal">
+    <div class="modal-head">
+      <h2 id="salaEstudianteTitle">Sala</h2>
+      <button class="modal-close" onclick="closeModal('modalSalaEstudiante'); openModal('modalSalas');">✕</button>
     </div>
+    <div id="salaEstudianteContent"></div>
+  </div>
+</div>
+
+<!-- ============ MODAL: DETALLE DE TAREA (estudiante) ============ -->
+<div class="modal-overlay hidden" id="modalTareaEstudianteOverlay" onclick="closeOnOverlay(event,'modalTareaEstudiante')">
+  <div class="modal">
+    <div class="modal-head">
+      <h2 id="tareaEstudianteTitle">Tarea</h2>
+      <button class="modal-close" onclick="closeModal('modalTareaEstudiante')">✕</button>
+    </div>
+    <div id="tareaEstudianteContent"></div>
+  </div>
+</div>
+
+<!-- ============ MODAL: ENTREGAS DE UNA TAREA (profesor) ============ -->
+<div class="modal-overlay hidden" id="modalEntregasOverlay" onclick="closeOnOverlay(event,'modalEntregas')">
+  <div class="modal">
+    <div class="modal-head">
+      <h2 id="entregasTitle">Entregas</h2>
+      <button class="modal-close" onclick="closeModal('modalEntregas')">✕</button>
+    </div>
+    <div id="entregasContent"></div>
   </div>
 </div>
 
@@ -1412,32 +1558,10 @@
 
 <script>
 /* =========================================================
-   ENFOQUE — Pomodoro por materias
+   ENFOQUE — Pomodoro por materias + Salas (profesor/estudiante)
    Persistencia: Supabase (Auth real + Postgres en la nube).
-
-   - El login/registro usa supabase.auth (contraseñas con hash seguro,
-     Supabase nunca guarda la contraseña en texto plano ni con btoa).
-   - Todo el resto de datos del usuario (materias, historial, logros,
-     horario y preferencias) se guarda como JSON en la tabla
-     "user_data", en una fila por usuario, protegida con Row Level
-     Security para que cada quien solo pueda leer/escribir la suya.
-
-   Estructura guardada en user_data.data (jsonb):
-   {
-     name: string,
-     materias: [{id, nombre, color}],
-     historial: [{id, materiaId, materiaNombre, minutos, fecha}],
-     cycleProgress: number,
-     settings: {accent, theme, focusMin, breakMin, cyclesEnabled, cyclesCount, longBreakMin}
-   }
 ========================================================= */
 
-/* ---------------- Configuración de Supabase ----------------
-   Reemplaza estos dos valores con los de tu proyecto:
-   Supabase → Project Settings → API → "Project URL" y "anon public" key.
-   La anon key es pública y segura de exponer en el frontend siempre
-   y cuando tengas Row Level Security activado (así viene en
-   schema_supabase.sql). NUNCA expongas la "service_role" key aquí. */
 const SUPABASE_URL = 'https://qpriprtrswpmkyvwzfoz.supabase.co';
 const SUPABASE_ANON_KEY = 'sb_publishable_kA-lPAYYx70_K9furjp-yw_YB4St2Ee';
 
@@ -1454,7 +1578,6 @@ const ACCENTS = [
 const MATERIA_PALETTE = ['#F2A65A','#7FB7BE','#C97BD1','#E5657A','#7FA8F2','#8FD19E','#E0C25A'];
 let newMateriaColor = MATERIA_PALETTE[0];
 
-/* Enfoques de tiempo sugeridos por la técnica Pomodoro (más el personalizado) */
 const PRESETS = [
   { id:'clasico',     ico:'🍅', name:'Clásico',              focus:25, brk:5,  desc:'Principiantes, tareas mecánicas o evitar la procrastinación' },
   { id:'maximo',      ico:'⚡', name:'Máximo enfoque',       focus:50, brk:10, desc:'Tareas complejas, redacción profunda o programación' },
@@ -1465,6 +1588,7 @@ const PRESETS = [
 
 let currentUser = null;
 let currentUserData = null;
+let currentUserRole = 'estudiante';
 
 let mode = 'focus';
 let remaining = 25 * 60;
@@ -1473,19 +1597,15 @@ let running = false;
 let timerInterval = null;
 let selectedMateriaId = null;
 
-/* ---------------- Persistencia (Supabase) ----------------
-   currentUser ahora es el UUID del usuario autenticado en Supabase
-   (antes era el nombre de usuario en texto plano). */
+/* Contexto de Sala/Tarea activos, para que el tiempo de enfoque se registre
+   también contra una tarea concreta si el estudiante la eligió. */
+let activeSalaId = null;
+let selectedTareaId = null;
 
 let _saveTimeout = null;
 let _savingNow = false;
 let _pendingSave = false;
 
-/* persistUser() se sigue llamando igual que antes desde todo el código
-   (renderMateriasList, savePersonalizacion, etc.), pero ahora en vez de
-   escribir a localStorage, agenda un guardado en Supabase con un
-   pequeño "debounce" para no saturar la red si el usuario hace varios
-   cambios seguidos. */
 function persistUser(){
   if(!currentUser || !currentUserData) return;
   clearTimeout(_saveTimeout);
@@ -1508,13 +1628,10 @@ async function flushUserData(){
   if(_pendingSave){ _pendingSave = false; flushUserData(); }
 }
 
-/* Trae la fila de datos del usuario ya autenticado. Si es su primer
-   ingreso y el trigger de la base de datos aún no creó la fila,
-   la crea aquí mismo con los valores por defecto. */
 async function fetchUserData(userId, fallbackName){
   let { data, error } = await supabaseClient
     .from('user_data')
-    .select('data, display_name')
+    .select('data, display_name, role')
     .eq('user_id', userId)
     .maybeSingle();
 
@@ -1534,9 +1651,11 @@ async function fetchUserData(userId, fallbackName){
       toast('No se pudo crear tu perfil en la nube.');
       return null;
     }
+    currentUserRole = 'estudiante';
     return defaults;
   }
 
+  currentUserRole = data.role || 'estudiante';
   return data.data && Object.keys(data.data).length ? data.data : defaultUserData(data.display_name || fallbackName);
 }
 
@@ -1574,6 +1693,12 @@ function fmtDate(iso){
          d.toLocaleTimeString('es-CO', { hour:'2-digit', minute:'2-digit' });
 }
 
+function escapeHtml(str){
+  const div = document.createElement('div');
+  div.textContent = str == null ? '' : str;
+  return div.innerHTML;
+}
+
 /* ---------------- Auth ---------------- */
 function switchAuthTab(which){
   document.getElementById('tabLogin').classList.toggle('active', which==='login');
@@ -1582,8 +1707,15 @@ function switchAuthTab(which){
   document.getElementById('formRegister').classList.toggle('hidden', which!=='register');
 }
 
+let registerRole = 'estudiante';
+function pickRegisterRole(role){
+  registerRole = role;
+  document.getElementById('roleStudentBtn').classList.toggle('selected', role==='estudiante');
+  document.getElementById('roleTeacherBtn').classList.toggle('selected', role==='profesor');
+}
+
 async function resolveEmailFromHandle(handle){
-  if(handle.includes('@')) return handle; // ya es un correo
+  if(handle.includes('@')) return handle;
   const { data, error } = await supabaseClient.rpc('email_for_username', { p_username: handle });
   if(error){
     console.error('Error resolviendo usuario:', error);
@@ -1617,7 +1749,11 @@ async function handleLogin(e){
   btn.textContent = 'Entrar';
 
   if(error){
-    errEl.textContent = 'Usuario/correo o contraseña incorrectos.';
+    if(error.message && error.message.toLowerCase().includes('email not confirmed')){
+      errEl.textContent = 'Tu correo aún no está confirmado.';
+    } else {
+      errEl.textContent = 'Usuario/correo o contraseña incorrectos.';
+    }
     return false;
   }
 
@@ -1664,7 +1800,7 @@ async function handleRegister(e){
   const { data, error } = await supabaseClient.auth.signUp({
     email,
     password: pass,
-    options: { data: { username, full_name: username } }
+    options: { data: { username, full_name: username, role: registerRole } }
   });
 
   btn.disabled = false;
@@ -1716,7 +1852,8 @@ function bootSession(userId, data){
   applyTheme();
   document.getElementById('authScreen').classList.add('hidden');
   document.getElementById('appShell').classList.remove('hidden');
-  document.getElementById('greetText').textContent = 'Hola, ' + currentUserData.name;
+  document.getElementById('greetText').innerHTML = 'Hola, ' + escapeHtml(currentUserData.name) +
+    (currentUserRole === 'profesor' ? '<span class="role-badge">Profesor</span>' : '');
 
   const saved = currentUserData.timerState;
   const hasProgress = saved && saved.remaining > 0 && (saved.remaining < saved.totalForMode || saved.running);
@@ -1787,6 +1924,7 @@ function renderAll(){
   renderAchievements();
   renderCurrentSubjectChip();
   renderCycleDots();
+  refreshSalasNotifications();
 }
 
 /* ---------------- Materias ---------------- */
@@ -1909,13 +2047,11 @@ function renderHorarioList(){
   el.innerHTML = html || '<div class="empty-state">Todavía no agregas bloques. Arma tu semana arriba ↑</div>';
 }
 
-/* Busca si, según el horario guardado, ahora mismo (día y hora reales) toca
-   alguna materia — para sugerirla primero en el selector "+". */
 function getCurrentScheduleMateriaId(){
   const bloques = currentUserData.horario || [];
   if(bloques.length === 0) return null;
   const now = new Date();
-  const diaNombre = DIAS_ORDEN[(now.getDay() + 6) % 7]; // getDay(): 0=domingo → reordenar a Lunes-Domingo
+  const diaNombre = DIAS_ORDEN[(now.getDay() + 6) % 7];
   const minutosAhora = now.getHours() * 60 + now.getMinutes();
   const bloque = bloques.find(b => {
     if(b.dia !== diaNombre) return false;
@@ -1925,12 +2061,6 @@ function getCurrentScheduleMateriaId(){
     return minutosAhora >= ini && minutosAhora < fin;
   });
   return bloque ? bloque.materiaId : null;
-}
-
-function escapeHtml(str){
-  const div = document.createElement('div');
-  div.textContent = str;
-  return div.innerHTML;
 }
 
 /* ---------------- Selector de materia (+) ---------------- */
@@ -1983,10 +2113,6 @@ function renderMateriaPicker(){
     }).join('');
 }
 
-/* Al elegir una materia distinta a la que estaba activa en un bloque de enfoque
-   a medias, el tiempo restante se guarda EN LA MATERIA que se deja (no viaja a
-   la nueva). Si la materia elegida ya tenía tiempo guardado de antes, se
-   pregunta si quiere continuar con ese tiempo o empezar de cero. */
 function selectMateria(id){
   if(id === selectedMateriaId){
     toggleMateriaPicker();
@@ -2003,6 +2129,10 @@ function selectMateria(id){
   }
 
   selectedMateriaId = id;
+  /* Elegir una materia manualmente rompe el vínculo con la tarea de Sala que
+     estuviera activa, para no acreditar minutos a una tarea equivocada. */
+  selectedTareaId = null;
+  activeSalaId = null;
   toggleMateriaPicker();
 
   const newMateria = currentUserData.materias.find(m => m.id === id);
@@ -2064,7 +2194,11 @@ function renderCurrentSubjectChip(){
     chip.innerHTML = '<span class="placeholder">Elige una materia con el botón +</span>';
     return;
   }
-  chip.innerHTML = `<span class="swatch" style="background:${m.color}"></span><span>${escapeHtml(m.nombre)}</span>`;
+  let extra = '';
+  if(selectedTareaId){
+    extra = ' <span style="color:var(--accent)">· estudiando para una tarea</span>';
+  }
+  chip.innerHTML = `<span class="swatch" style="background:${m.color}"></span><span>${escapeHtml(m.nombre)}${extra}</span>`;
   chip.classList.add('show');
 }
 
@@ -2113,8 +2247,6 @@ function updateRingToFraction(progress){
   ring.style.strokeDashoffset = `${circumference * (1 - progress)}`;
 }
 
-/* Anima el anillo cuadro a cuadro mientras el cronómetro corre, para un barrido
-   continuo en vez de saltos cada segundo. */
 function animateRing(){
   if(!running || !timerEndAt) return;
   const msLeft = Math.max(0, timerEndAt - Date.now());
@@ -2134,8 +2266,6 @@ function updateDigitsOnly(){
   document.getElementById('digits').textContent = `${m}:${s}`;
 }
 
-/* Muestra "Reiniciar" y "Detener" solo cuando hay una sesión activa o a medias;
-   si está intacta (recién empezada, sin correr) solo se ve el botón "Iniciar". */
 function updateTimerControlsVisibility(){
   const active = running || remaining < totalForMode;
   document.getElementById('timerControls').classList.toggle('active', active);
@@ -2185,7 +2315,6 @@ function resetTimer(){
   setMode(mode);
 }
 
-/* Guarda una "foto" del cronómetro para poder recuperarla si se cierra sesión a mitad de una sesión */
 function saveTimerState(){
   if(!currentUserData) return;
   currentUserData.timerState = {
@@ -2193,6 +2322,18 @@ function saveTimerState(){
     savedAt: Date.now()
   };
   persistUser();
+}
+
+/* Registra en Supabase el tiempo de enfoque invertido en una tarea de Sala,
+   tanto en la tabla de sesiones (para el ranking del profesor) como en la
+   propia fila de entrega (para que el profesor vea minutos por estudiante). */
+function registrarTiempoDeSalaSiAplica(minutos){
+  if(!selectedTareaId || !activeSalaId || minutos <= 0) return;
+  supabaseClient.from('sala_sesiones').insert({
+    sala_id: activeSalaId, tarea_id: selectedTareaId, estudiante_id: currentUser, minutos
+  }).then(({ error }) => { if(error) console.error('Error registrando sesión de sala:', error); });
+  supabaseClient.rpc('sumar_minutos_entrega', { p_tarea: selectedTareaId, p_minutos: minutos })
+    .then(({ error }) => { if(error) console.error('Error sumando minutos a entrega:', error); });
 }
 
 function onTimerComplete(){
@@ -2211,6 +2352,7 @@ function onTimerComplete(){
     };
     currentUserData.historial.unshift(registro);
     currentUserData.cycleProgress = (currentUserData.cycleProgress || 0) + 1;
+    registrarTiempoDeSalaSiAplica(registro.minutos);
 
     const earnedLongBreak = s.cyclesEnabled && currentUserData.cycleProgress >= s.cyclesCount;
     if(earnedLongBreak){
@@ -2241,8 +2383,6 @@ function onTimerComplete(){
   }
 }
 
-/* Registra una sesión (completa o parcial) sin pasar por onTimerComplete,
-   usado cuando el usuario detiene el bloque antes de tiempo. */
 function logPartialSession(minutos){
   const materia = currentUserData.materias.find(m => m.id === selectedMateriaId);
   const registro = {
@@ -2254,6 +2394,7 @@ function logPartialSession(minutos){
   };
   currentUserData.historial.unshift(registro);
   currentUserData.cycleProgress = (currentUserData.cycleProgress || 0) + 1;
+  registrarTiempoDeSalaSiAplica(minutos);
   const s = currentUserData.settings;
   const earnedLongBreak = s.cyclesEnabled && currentUserData.cycleProgress >= s.cyclesCount;
   if(earnedLongBreak){
@@ -2436,8 +2577,6 @@ function evaluateAchievements(){
   ];
 }
 
-/* Revisa los logros y "sella" los que se cumplan. Una vez desbloqueado, un logro
-   queda guardado para siempre (aunque después borres materias o cambien tus stats). */
 function checkAchievements(){
   if(!currentUserData.unlockedAchievements) currentUserData.unlockedAchievements = [];
   const defs = evaluateAchievements();
@@ -2738,7 +2877,6 @@ function openPersonalizarModal(){
 
   document.getElementById('displayNameInput').value = currentUserData.name;
 
-  // Si el usuario edita los minutos a mano, pasamos a "Personalizado" automáticamente
   document.getElementById('focusMinInput').oninput = () => selectPreset('personalizado');
   document.getElementById('breakMinInput').oninput = () => selectPreset('personalizado');
 }
@@ -2761,7 +2899,8 @@ function savePersonalizacion(){
 
   persistUser();
   applyTheme();
-  document.getElementById('greetText').textContent = 'Hola, ' + currentUserData.name;
+  document.getElementById('greetText').innerHTML = 'Hola, ' + escapeHtml(currentUserData.name) +
+    (currentUserRole === 'profesor' ? '<span class="role-badge">Profesor</span>' : '');
   if(!running) setMode(mode);
   renderCycleDots();
   closeModal('modalPersonalizar');
@@ -2775,6 +2914,7 @@ function openModal(id){
   if(id === 'modalRegistro') renderHistoryList();
   if(id === 'modalLogros') renderAchievements();
   if(id === 'modalHorario'){ renderHorarioMateriaOptions(); renderHorarioList(); }
+  if(id === 'modalSalas') openModalSalas();
   document.getElementById(id + 'Overlay').classList.remove('hidden');
 }
 function closeModal(id){
@@ -2782,6 +2922,419 @@ function closeModal(id){
 }
 function closeOnOverlay(e, id){
   if(e.target.id === id + 'Overlay') closeModal(id);
+}
+
+/* =========================================================
+   ============ SALAS: PROFESOR / ESTUDIANTE ================
+========================================================= */
+
+let salasNotifCache = { tareasNuevas: [], notasNuevas: [] };
+
+function computePendingToday(){
+  const todayStr = new Date().toDateString();
+  const studiedIds = new Set(
+    currentUserData.historial
+      .filter(h => new Date(h.fecha).toDateString() === todayStr)
+      .map(h => h.materiaId)
+  );
+  return currentUserData.materias.filter(m => !studiedIds.has(m.id));
+}
+
+/* Trae, para el estudiante actual, sus entregas cuya tarea aún no ha visto
+   o cuya nota aún no ha visto — esto alimenta el punto parpadeante de
+   "¿Qué tienes para hoy?". Si el usuario es profesor, no aplica. */
+async function refreshSalasNotifications(){
+  if(!currentUser){ return; }
+  if(currentUserRole === 'profesor'){
+    renderPendingDot();
+    return;
+  }
+  const { data, error } = await supabaseClient
+    .from('entregas')
+    .select('id, estado, nota, feedback, visto_tarea, visto_nota, enlace, comentario, minutos_invertidos, tarea:tareas(id,titulo,descripcion,enlaces,sala_id,sala:salas(nombre))')
+    .eq('estudiante_id', currentUser);
+  if(error){
+    console.error('Error cargando notificaciones de Salas:', error);
+    renderPendingDot();
+    return;
+  }
+  salasNotifCache.tareasNuevas = (data || []).filter(e => !e.visto_tarea);
+  salasNotifCache.notasNuevas = (data || []).filter(e => e.estado === 'calificado' && !e.visto_nota);
+  renderPendingDot();
+}
+
+function renderPendingDot(){
+  const pendingMaterias = computePendingToday();
+  const { tareasNuevas, notasNuevas } = salasNotifCache;
+  const dot = document.getElementById('pendingDot');
+  const sub = document.getElementById('todaySub');
+  const totalPend = pendingMaterias.length + tareasNuevas.length + notasNuevas.length;
+
+  if(currentUserData.materias.length === 0 && totalPend === (pendingMaterias.length)){
+    // sin materias y sin notificaciones de salas
+  }
+
+  if(totalPend > 0){
+    dot.classList.add('blink');
+    const partes = [];
+    if(notasNuevas.length) partes.push(`${notasNuevas.length} nota(s) nueva(s)`);
+    if(tareasNuevas.length) partes.push(`${tareasNuevas.length} tarea(s) nueva(s)`);
+    if(pendingMaterias.length) partes.push(`${pendingMaterias.length} materia(s) sin estudiar`);
+    sub.textContent = partes.join(' · ');
+  } else {
+    dot.classList.remove('blink');
+    sub.textContent = currentUserData.materias.length === 0
+      ? 'Agrega materias para ver tus pendientes de hoy'
+      : 'Estás al día 🎉';
+  }
+}
+
+function openModalHoy(){
+  const { tareasNuevas, notasNuevas } = salasNotifCache;
+  const pendingMaterias = computePendingToday();
+  let html = '';
+
+  notasNuevas.forEach(e => {
+    html += `<div class="materia-row" style="cursor:pointer" onclick='verEntregaDesdeHoy(${JSON.stringify(e).replace(/'/g,"&apos;")})'>
+      <span class="swatch" style="background:var(--success)"></span>
+      <span class="name">Nota de "${escapeHtml(e.tarea.titulo)}": ${e.nota}</span>
+    </div>`;
+  });
+  tareasNuevas.forEach(e => {
+    html += `<div class="materia-row" style="cursor:pointer" onclick='verEntregaDesdeHoy(${JSON.stringify(e).replace(/'/g,"&apos;")})'>
+      <span class="swatch" style="background:var(--accent)"></span>
+      <span class="name">Nueva tarea: ${escapeHtml(e.tarea.titulo)} · ${escapeHtml(e.tarea.sala.nombre)}</span>
+    </div>`;
+  });
+  pendingMaterias.forEach(m => {
+    html += `<div class="materia-row"><span class="swatch" style="background:${m.color}"></span><span class="name">Aún no estudias ${escapeHtml(m.nombre)} hoy</span></div>`;
+  });
+
+  document.getElementById('hoyList').innerHTML = html || '<div class="empty-state">Estás al día. Nada pendiente por aquí 🎉</div>';
+  document.getElementById('modalHoyOverlay').classList.remove('hidden');
+}
+
+function verEntregaDesdeHoy(entrega){
+  closeModal('modalHoy');
+  abrirTareaEstudiante(entrega.tarea, entrega);
+}
+
+/* ---------------- Modal principal de Salas (crear/unirse/listar) ---------------- */
+async function openModalSalas(){
+  const cont = document.getElementById('salasContent');
+  document.getElementById('salasModalTitle').textContent = currentUserRole === 'profesor' ? 'Mis salas 🏫' : 'Salas 🏫';
+  cont.innerHTML = '<div class="empty-state">Cargando…</div>';
+
+  if(currentUserRole === 'profesor'){
+    const { data: salas, error } = await supabaseClient
+      .from('salas').select('id,nombre,codigo').eq('profesor_id', currentUser).order('created_at', { ascending:false });
+    if(error){ cont.innerHTML = '<div class="empty-state">No se pudieron cargar tus salas.</div>'; return; }
+    cont.innerHTML = `
+      <form onsubmit="return handleCrearSala(event)" style="display:flex; gap:8px; margin-bottom:16px;">
+        <input type="text" id="nuevaSalaNombre" placeholder="Ej. Historia 10-A" required style="flex:1; padding:12px 14px; border-radius:9px; border:1px solid var(--border); background: var(--bg); color: var(--text);">
+        <button type="submit" class="btn btn-primary" style="width:auto;">Crear</button>
+      </form>
+      ${(salas||[]).map(s => `
+        <div class="materia-row" style="cursor:pointer" onclick="abrirPanelProfesor('${s.id}', ${JSON.stringify(s.nombre)}, ${JSON.stringify(s.codigo)})">
+          <span class="name">${escapeHtml(s.nombre)}</span>
+          <span class="sala-code-pill">${s.codigo}</span>
+        </div>`).join('') || '<div class="empty-state">Aún no creas ninguna sala. Crea la primera arriba ↑</div>'}
+    `;
+  } else {
+    const { data: miembro, error } = await supabaseClient
+      .from('sala_miembros').select('sala:salas(id,nombre)').eq('estudiante_id', currentUser);
+    if(error){ cont.innerHTML = '<div class="empty-state">No se pudieron cargar tus salas.</div>'; return; }
+    cont.innerHTML = `
+      <form onsubmit="return handleUnirseSala(event)" style="display:flex; gap:8px; margin-bottom:16px;">
+        <input type="text" id="codigoSala" placeholder="Código de la sala" required maxlength="6" style="flex:1; padding:12px 14px; border-radius:9px; border:1px solid var(--border); background: var(--bg); color: var(--text); text-transform:uppercase;">
+        <button type="submit" class="btn btn-primary" style="width:auto;">Unirme</button>
+      </form>
+      ${(miembro||[]).map(m => `
+        <div class="materia-row" style="cursor:pointer" onclick="abrirSalaEstudiante('${m.sala.id}', ${JSON.stringify(m.sala.nombre)})">
+          <span class="name">${escapeHtml(m.sala.nombre)}</span>
+        </div>`).join('') || '<div class="empty-state">Aún no te unes a ninguna sala. Pídele el código a tu profesor.</div>'}
+    `;
+  }
+}
+
+async function handleCrearSala(e){
+  e.preventDefault();
+  const nombre = document.getElementById('nuevaSalaNombre').value.trim();
+  const { data, error } = await supabaseClient.rpc('crear_sala', { p_nombre: nombre });
+  if(error){ toast('No se pudo crear la sala: ' + error.message); return false; }
+  const row = Array.isArray(data) ? data[0] : data;
+  toast(`Sala creada. Código: ${row.codigo}`);
+  openModalSalas();
+  return false;
+}
+
+async function handleUnirseSala(e){
+  e.preventDefault();
+  const codigo = document.getElementById('codigoSala').value.trim();
+  const { data, error } = await supabaseClient.rpc('unirse_a_sala', { p_codigo: codigo });
+  if(error){ toast('Código inválido o ya no disponible.'); return false; }
+  const row = Array.isArray(data) ? data[0] : data;
+  toast(`Te uniste a ${row.nombre}`);
+  openModalSalas();
+  return false;
+}
+
+/* ---------------- Vista del ESTUDIANTE dentro de una sala ---------------- */
+async function abrirSalaEstudiante(salaId, nombreSala){
+  closeModal('modalSalas');
+  activeSalaId = salaId;
+  document.getElementById('salaEstudianteTitle').textContent = nombreSala;
+
+  const { data: tareas, error } = await supabaseClient
+    .from('tareas')
+    .select('id, titulo, descripcion, enlaces, fecha_limite, sala_id, entregas!inner(id,estado,nota,feedback,visto_tarea,visto_nota,enlace,comentario,minutos_invertidos)')
+    .eq('sala_id', salaId)
+    .eq('entregas.estudiante_id', currentUser)
+    .order('created_at', { ascending:false });
+
+  const cont = document.getElementById('salaEstudianteContent');
+  if(error){ cont.innerHTML = '<div class="empty-state">No se pudieron cargar las tareas.</div>'; document.getElementById('modalSalaEstudianteOverlay').classList.remove('hidden'); return; }
+
+  cont.innerHTML = (tareas||[]).map(t => {
+    const en = t.entregas[0];
+    const badgeClass = en.estado === 'calificado' ? 'calificado' : (en.estado === 'enviado' ? 'enviado' : 'pendiente');
+    const badgeText = en.estado === 'calificado' ? `Nota ${en.nota}` : (en.estado === 'enviado' ? 'Enviado' : 'Pendiente');
+    return `<div class="tarea-row" onclick='abrirTareaEstudiante(${JSON.stringify(t).replace(/'/g,"&apos;")}, ${JSON.stringify(en).replace(/'/g,"&apos;")})'>
+      <div class="tarea-main">
+        <div class="tarea-title">${escapeHtml(t.titulo)}</div>
+        <div class="tarea-sala">${t.fecha_limite ? 'Entrega: ' + fmtDate(t.fecha_limite) : 'Sin fecha límite'}</div>
+      </div>
+      <span class="tarea-badge ${badgeClass}">${badgeText}</span>
+    </div>`;
+  }).join('') || '<div class="empty-state">Aún no hay tareas en esta sala.</div>';
+
+  document.getElementById('modalSalaEstudianteOverlay').classList.remove('hidden');
+}
+
+async function abrirTareaEstudiante(tarea, entrega){
+  closeModal('modalSalaEstudiante');
+  activeSalaId = tarea.sala_id;
+  document.getElementById('tareaEstudianteTitle').textContent = tarea.titulo;
+
+  if(!entrega.visto_tarea){
+    supabaseClient.from('entregas').update({ visto_tarea: true }).eq('id', entrega.id)
+      .then(()=> refreshSalasNotifications());
+  }
+  if(entrega.estado === 'calificado' && !entrega.visto_nota){
+    supabaseClient.from('entregas').update({ visto_nota: true }).eq('id', entrega.id)
+      .then(()=> refreshSalasNotifications());
+  }
+
+  const enlaces = (tarea.enlaces||[]).map(l => `<div><a href="${l}" target="_blank" rel="noopener">${escapeHtml(l)}</a></div>`).join('');
+
+  let bodyHtml = `
+    <div class="info-block">${escapeHtml(tarea.descripcion || 'Sin descripción.')}</div>
+    ${enlaces ? `<div class="info-block"><strong>Enlaces de referencia</strong>${enlaces}</div>` : ''}
+  `;
+
+  if(entrega.estado === 'calificado'){
+    bodyHtml += `
+      <hr class="section-divider">
+      <div class="info-block"><strong>Tu nota: ${entrega.nota}</strong><br>${escapeHtml(entrega.feedback || 'Sin comentarios adicionales.')}</div>
+      <div class="info-block">Tiempo invertido: <strong>${entrega.minutos_invertidos || 0} min</strong></div>
+    `;
+    if(entrega.enlace){
+      bodyHtml += `<div class="info-block"><strong>Tu entrega:</strong><br><a href="${entrega.enlace}" target="_blank" rel="noopener">${escapeHtml(entrega.enlace)}</a></div>`;
+    }
+  } else {
+    bodyHtml += `
+      <hr class="section-divider">
+      <div class="field">
+        <label for="entregaEnlaceInput">Enlace de tu trabajo (Drive, Docs, etc.)</label>
+        <input type="text" id="entregaEnlaceInput" value="${escapeHtml(entrega.enlace || '')}" placeholder="https://..." style="width:100%; padding:12px 14px; border-radius:9px; border:1px solid var(--border); background: var(--bg); color: var(--text);">
+      </div>
+      <div class="field">
+        <label for="entregaComentarioInput">Comentario (opcional)</label>
+        <textarea id="entregaComentarioInput" class="textarea-field" rows="2" placeholder="Ej. avancé hasta el punto 3">${escapeHtml(entrega.comentario || '')}</textarea>
+      </div>
+      <div class="info-block">Tiempo invertido hasta ahora: <strong>${entrega.minutos_invertidos || 0} min</strong>. Usa el temporizador con esta tarea seleccionada para que se siga sumando.</div>
+      <button class="btn btn-secondary" style="width:100%; margin-bottom:10px;" onclick='estudiarParaTarea(${JSON.stringify(tarea).replace(/'/g,"&apos;")})'>⏱️ Estudiar para esta tarea ahora</button>
+      <button class="btn btn-primary" onclick="marcarComoEnviado('${entrega.id}')">${entrega.estado === 'enviado' ? 'Actualizar entrega' : 'Marcar como enviado'}</button>
+    `;
+  }
+
+  document.getElementById('tareaEstudianteContent').innerHTML = bodyHtml;
+  document.getElementById('modalTareaEstudianteOverlay').classList.remove('hidden');
+}
+
+/* Selecciona la materia asociada (o crea una temporal "Tarea") y liga el
+   cronómetro a esta tarea de Sala, para que los minutos se acrediten. */
+function estudiarParaTarea(tarea){
+  selectedTareaId = tarea.id;
+  activeSalaId = tarea.sala_id;
+  if(!selectedMateriaId){
+    toast('Elige primero una materia con el botón + para asociar el tiempo, luego vuelve a esta tarea si quieres.');
+  } else {
+    toast('Listo. El tiempo que estudies ahora también se sumará a esta tarea.');
+  }
+  renderCurrentSubjectChip();
+  closeModal('modalTareaEstudiante');
+}
+
+async function marcarComoEnviado(entregaId){
+  const enlace = document.getElementById('entregaEnlaceInput').value.trim();
+  const comentario = document.getElementById('entregaComentarioInput').value.trim();
+  const { error } = await supabaseClient.from('entregas').update({
+    estado: 'enviado', enlace, comentario, enviado_at: new Date().toISOString()
+  }).eq('id', entregaId);
+  if(error){ toast('No se pudo enviar: ' + error.message); return; }
+  toast('Trabajo enviado ✅');
+  closeModal('modalTareaEstudiante');
+}
+
+/* ---------------- Panel del PROFESOR dentro de una sala ---------------- */
+async function abrirPanelProfesor(salaId, nombreSala, codigo){
+  closeModal('modalSalas');
+  document.getElementById('salaProfesorTitle').innerHTML = `${escapeHtml(nombreSala)} <span class="sala-code-pill" style="margin-left:8px;">${codigo}</span>`;
+  document.getElementById('salaProfesorContent').innerHTML = '<div class="empty-state">Cargando…</div>';
+  document.getElementById('modalSalaProfesorOverlay').classList.remove('hidden');
+  await renderPanelProfesorTab(salaId, 'tareas');
+}
+
+async function renderPanelProfesorTab(salaId, tab){
+  const cont = document.getElementById('salaProfesorContent');
+
+  const tabsHtml = `
+    <div class="sala-tab-row">
+      <button class="sala-tab ${tab==='tareas'?'active':''}" onclick="renderPanelProfesorTab('${salaId}','tareas')">Tareas</button>
+      <button class="sala-tab ${tab==='ranking'?'active':''}" onclick="renderPanelProfesorTab('${salaId}','ranking')">Clasificación</button>
+      <button class="sala-tab ${tab==='estudiantes'?'active':''}" onclick="renderPanelProfesorTab('${salaId}','estudiantes')">Estudiantes</button>
+    </div>
+  `;
+
+  if(tab === 'tareas'){
+    const { data: tareas, error } = await supabaseClient
+      .from('tareas').select('id,titulo,fecha_limite,entregas(estado)').eq('sala_id', salaId).order('created_at', { ascending:false });
+    const tareasHtml = (tareas||[]).map(t => {
+      const total = (t.entregas||[]).length;
+      const enviadas = (t.entregas||[]).filter(e => e.estado !== 'pendiente').length;
+      return `<div class="tarea-row" onclick="verEntregasDeTarea('${t.id}', ${JSON.stringify(t.titulo)})">
+        <div class="tarea-main">
+          <div class="tarea-title">${escapeHtml(t.titulo)}</div>
+          <div class="tarea-sala">${enviadas}/${total} entregado(s)</div>
+        </div>
+        <span class="tarea-badge pendiente">Ver</span>
+      </div>`;
+    }).join('') || '<div class="empty-state">Aún no asignas tareas en esta sala.</div>';
+
+    cont.innerHTML = tabsHtml + `
+      <form onsubmit="return handleCrearTarea(event,'${salaId}')" style="display:flex; flex-direction:column; gap:8px; margin-bottom:18px;">
+        <input type="text" id="tareaTitulo" placeholder="Título de la tarea" required style="padding:12px 14px; border-radius:9px; border:1px solid var(--border); background: var(--bg); color: var(--text);">
+        <textarea id="tareaDescripcion" class="textarea-field" rows="3" placeholder="Descripción / instrucciones"></textarea>
+        <input type="text" id="tareaEnlace" placeholder="Enlace de referencia (opcional)" style="padding:12px 14px; border-radius:9px; border:1px solid var(--border); background: var(--bg); color: var(--text);">
+        <input type="datetime-local" id="tareaFechaLimite" style="padding:12px 14px; border-radius:9px; border:1px solid var(--border); background: var(--bg); color: var(--text);">
+        <button type="submit" class="btn btn-primary">Asignar tarea a esta sala</button>
+      </form>
+      <h4 style="margin:0 0 8px;">Tareas asignadas</h4>
+      ${tareasHtml}
+    `;
+    if(error) console.error(error);
+  }
+
+  if(tab === 'ranking'){
+    const { data: miembros } = await supabaseClient
+      .from('sala_miembros').select('estudiante_id, usuario:user_data!inner(display_name)').eq('sala_id', salaId);
+    const { data: sesiones } = await supabaseClient
+      .from('sala_sesiones').select('estudiante_id, minutos').eq('sala_id', salaId);
+
+    const tiempoPorEstudiante = {};
+    (sesiones||[]).forEach(s => tiempoPorEstudiante[s.estudiante_id] = (tiempoPorEstudiante[s.estudiante_id]||0) + s.minutos);
+
+    const ranking = (miembros||[]).map(m => ({
+      nombre: m.usuario.display_name,
+      minutos: tiempoPorEstudiante[m.estudiante_id] || 0
+    })).sort((a,b) => b.minutos - a.minutos);
+
+    cont.innerHTML = tabsHtml + `
+      <h4 style="margin:0 0 8px;">Tiempo de estudio en esta sala</h4>
+      <div style="border:1px solid var(--border); border-radius: var(--radius-sm); overflow:hidden;">
+        ${ranking.map((r,i) => `
+          <div class="ranking-row">
+            <span class="ranking-pos">${i+1}</span>
+            <span class="ranking-name">${escapeHtml(r.nombre)}</span>
+            <span class="ranking-min">${r.minutos} min</span>
+          </div>`).join('') || '<div class="empty-state">Aún no hay datos de tiempo.</div>'}
+      </div>
+    `;
+  }
+
+  if(tab === 'estudiantes'){
+    const { data: miembros } = await supabaseClient
+      .from('sala_miembros').select('estudiante_id, joined_at, usuario:user_data!inner(display_name)').eq('sala_id', salaId);
+    cont.innerHTML = tabsHtml + `
+      <h4 style="margin:0 0 8px;">Estudiantes en esta sala (${(miembros||[]).length})</h4>
+      ${(miembros||[]).map(m => `
+        <div class="materia-row">
+          <span class="name">${escapeHtml(m.usuario.display_name)}</span>
+          <span class="stat">Desde ${fmtDate(m.joined_at)}</span>
+        </div>`).join('') || '<div class="empty-state">Aún nadie se une con el código de esta sala.</div>'}
+    `;
+  }
+}
+
+async function handleCrearTarea(e, salaId){
+  e.preventDefault();
+  const titulo = document.getElementById('tareaTitulo').value.trim();
+  const descripcion = document.getElementById('tareaDescripcion').value.trim();
+  const enlace = document.getElementById('tareaEnlace').value.trim();
+  const fechaLimite = document.getElementById('tareaFechaLimite').value;
+  const { error } = await supabaseClient.from('tareas').insert({
+    sala_id: salaId, profesor_id: currentUser, titulo, descripcion,
+    enlaces: enlace ? [enlace] : [],
+    fecha_limite: fechaLimite ? new Date(fechaLimite).toISOString() : null
+  });
+  if(error){ toast('Error al crear la tarea: ' + error.message); return false; }
+  toast('Tarea asignada a la sala.');
+  renderPanelProfesorTab(salaId, 'tareas');
+  return false;
+}
+
+async function verEntregasDeTarea(tareaId, titulo){
+  document.getElementById('entregasTitle').textContent = titulo;
+  document.getElementById('entregasContent').innerHTML = '<div class="empty-state">Cargando…</div>';
+  document.getElementById('modalEntregasOverlay').classList.remove('hidden');
+
+  const { data: entregas, error } = await supabaseClient
+    .from('entregas')
+    .select('id, estado, nota, feedback, enlace, comentario, minutos_invertidos, estudiante:user_data!inner(display_name)')
+    .eq('tarea_id', tareaId);
+
+  if(error){ document.getElementById('entregasContent').innerHTML = '<div class="empty-state">No se pudieron cargar las entregas.</div>'; return; }
+
+  document.getElementById('entregasContent').innerHTML = (entregas||[]).map(e => `
+    <div class="entrega-card">
+      <div class="entrega-head">
+        <span class="entrega-name">${escapeHtml(e.estudiante.display_name)}</span>
+        <span class="tarea-badge ${e.estado}">${e.estado === 'calificado' ? 'Nota ' + e.nota : (e.estado === 'enviado' ? 'Enviado' : 'Pendiente')}</span>
+      </div>
+      <div style="font-size:11.5px; color:var(--text-muted); margin-bottom:6px;">Tiempo invertido: ${e.minutos_invertidos || 0} min</div>
+      ${e.enlace ? `<a href="${e.enlace}" target="_blank" rel="noopener">${escapeHtml(e.enlace)}</a>` : '<div style="font-size:12.5px; color:var(--text-muted);">Sin enlace todavía.</div>'}
+      ${e.comentario ? `<div style="font-size:12.5px; margin-top:4px;">"${escapeHtml(e.comentario)}"</div>` : ''}
+      <div class="entrega-grade-row">
+        <input type="number" step="0.1" placeholder="Nota" id="nota_${e.id}" value="${e.nota != null ? e.nota : ''}">
+        <input type="text" placeholder="Comentario para el estudiante" id="fb_${e.id}" value="${escapeHtml(e.feedback || '')}">
+        <button class="btn btn-secondary" style="padding:0 14px; width:auto;" onclick="calificarEntrega('${e.id}','${tareaId}',${JSON.stringify(titulo)})">Enviar</button>
+      </div>
+    </div>
+  `).join('') || '<div class="empty-state">Aún no hay estudiantes en esta sala.</div>';
+}
+
+async function calificarEntrega(entregaId, tareaId, titulo){
+  const notaVal = document.getElementById('nota_'+entregaId).value;
+  const feedback = document.getElementById('fb_'+entregaId).value.trim();
+  if(notaVal === ''){ toast('Escribe una nota antes de enviar.'); return; }
+  const { error } = await supabaseClient.from('entregas').update({
+    estado: 'calificado', nota: parseFloat(notaVal), feedback,
+    calificado_at: new Date().toISOString(), visto_nota: false
+  }).eq('id', entregaId);
+  if(error){ toast('No se pudo calificar: ' + error.message); return; }
+  toast('Nota enviada al estudiante.');
+  verEntregasDeTarea(tareaId, titulo);
 }
 
 /* ---------------- Recuperación de contraseña ---------------- */
@@ -2817,8 +3370,6 @@ async function handleRecoveryRequest(e){
     }
   }
 
-  // Por seguridad mostramos el mismo mensaje exista o no esa cuenta,
-  // para no revelar qué usuarios/correos están registrados.
   btn.disabled = false;
   btn.textContent = 'Enviar enlace de recuperación';
   toast('Si esa cuenta existe, te llegará un correo con el enlace para restablecer tu contraseña.');
@@ -2851,9 +3402,6 @@ async function handleSetNewPassword(e){
   return false;
 }
 
-/* Cuando el usuario vuelve del enlace de recuperación que le llegó por
-   correo, Supabase dispara este evento: abrimos el modal directo en la
-   vista de "escribir nueva contraseña". */
 supabaseClient.auth.onAuthStateChange((event) => {
   if(event === 'PASSWORD_RECOVERY'){
     document.getElementById('formRecoveryRequest').classList.add('hidden');
@@ -2876,12 +3424,6 @@ document.addEventListener('click', function(e){
   }
 });
 
-/* Red de seguridad: si cierran la pestaña/navegador a mitad de una sesión,
-   guardamos el estado justo antes de que se descargue la página.
-   Como ya no es localStorage sino una llamada de red a Supabase, no hay
-   garantía de que termine antes de que se cierre la pestaña, pero
-   forzamos el guardado inmediato (sin esperar el debounce) para
-   maximizar las chances de que se alcance a enviar. */
 window.addEventListener('beforeunload', function(){
   if(currentUserData && running){
     currentUserData.timerState = { mode, remaining, totalForMode, selectedMateriaId, running, savedAt: Date.now() };
@@ -2900,7 +3442,6 @@ window.addEventListener('beforeunload', function(){
       return;
     }
   }
-  // Sin sesión activa: se queda en la pantalla de auth (ya visible por defecto)
 })();
 </script>
 </body>
